@@ -11,7 +11,7 @@ all: $(OUTDIR)/baum_welch
 $(OUTDIR)/baum_welch: $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o
 	$(CC) $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o -o $@
 
-$(OBJDIR)/test.o: $(SRCDIR)/test.cc $(INCLUDEDIR)/hmm.h
+$(OBJDIR)/test.o: $(SRCDIR)/test.cc $(INCLUDEDIR)/bw.h
 	$(CC) -o $@ $(CFLAGS) $(SRCDIR)/test.cc
 
 $(OBJDIR)/bw.o: $(SRCDIR)/bw.cc $(INCLUDEDIR)/bw.h
