@@ -1,4 +1,5 @@
-import numpy as np 
+import numpy as np
+import sys
 
 def generate_HMM_observation(num_obs, pi, T, E):
     def drawFrom(probs):
@@ -14,16 +15,42 @@ def generate_HMM_observation(num_obs, pi, T, E):
     return obs, states
 
 
-True_pi = np.array([0.5, 0.5])
+# number of states
+N = int(sys.argv[1])
 
-True_T = np.array([[0.85, 0.15],
-                  [0.12, 0.88]])
+# number of observations
+M = int(sys.argv[2])
 
-True_E = np.array([[0.8, 0.0],
-                   [0.1, 0.0],
-                   [0.1, 1.0]])
+true_pi = np.random.dirichlet(np.ones(M),size=1)
+true_A = np.random.dirichlet(np.ones(M),size=M)
+true_B = np.random.dirichlet(np.ones(N),size=M)
 
-obs_seq, states = generate_HMM_observation(50, True_pi, True_T, True_E)
+obs_seq, _ = generate_HMM_observation(50, true_pi, true_A, true_B)
+with open('../input/observations.txt', 'w') as f:
+    for item in obs_seq[:-1]:
+        f.write("%i " % item)
+    f.write("%i\n" % obs_seq[-1])
 
-print("First 10 Obersvations:  ", obs_seq[:18])
-print("First 10 Hidden States: ", states[:18])
+init_pi = np.random.dirichlet(np.ones(M),size=1)
+init_A = np.random.dirichlet(np.ones(M),size=M)
+init_B = np.random.dirichlet(np.ones(N),size=M)
+
+with open('../input/sample.txt', 'w') as f:
+    f.write(str(N) + " " + str(M) + "\n")
+    f.write("\n")
+    for item in init_pi[0][:-1]:
+        f.write("%.4f " % item)
+    f.write("%.4f" % init_pi[0][-1])
+    f.write("\n")
+    f.write("\n")
+
+    for i in range(init_A.shape[0]):
+        for item in init_A[i][:-1]:
+            f.write("%.4f " % item)
+        f.write("%.4f\n" % init_A[i][-1])
+    f.write("\n")
+
+    for i in range(init_B.shape[0]):
+        for item in init_B[i][:-1]:
+            f.write("%.4f " % item)
+        f.write("%.4f\n" % init_B[i][-1])
