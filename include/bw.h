@@ -9,6 +9,7 @@
 #include "hmm.h"
 
 #define TH 1e-4
+#define MAX_ITERATIONS 10
 
 class BW {
 
@@ -16,7 +17,7 @@ class BW {
 
         HMM *hmm;
 		
-		BW(HMM *init_model, std::vector<int> seq, int t): hmm(init_model), threshold(TH), observation_seq(seq), T(t) {};
+		BW(HMM *init_model, std::vector<int> seq, int t): hmm(init_model), threshold(TH), max_iterations(MAX_ITERATIONS), observation_seq(seq), T(t) {};
 
 		~BW() {};
 
@@ -29,9 +30,12 @@ class BW {
         // convergence threshold
         double threshold;
 
+        // maximum number of BW iterations
+        int max_iterations;
+
         // observation sequence -- this should be a set of observation sequences
         std::vector<int> observation_seq;
-
+        
         // observation sequence length
         int T;
 

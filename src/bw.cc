@@ -77,11 +77,11 @@ bool BW::update_and_check(double** forward, double** backward) {
 
     for (i=0; i<hmm->M; i++) {
         double sum = 0.0;
-        for (t=0; t<T-2; t++)
+        for (t=0; t<T-1; t++)
             sum += gamma[i][t];
         for (j=0; j<hmm->M; j++) {
             double sum2 = 0.0;
-            for (t=0; t<T-2; t++)
+            for (t=0; t<T-1; t++)
                 sum2 += chsi[i][j][t];
             new_A[i][j] = sum2/sum;
         }
@@ -89,11 +89,11 @@ bool BW::update_and_check(double** forward, double** backward) {
 
     for (i=0; i<hmm->M; i++) {
         double sum = 0.0;
-        for (t=0; t<T-1; t++)
+        for (t=0; t<T; t++)
             sum += gamma[i][t];
         for (vk=0; vk<hmm->N; vk++) {
             double occurrences  = 0.0;
-            for (t=0; t<T-1; t++) {
+            for (t=0; t<T; t++) {
                 if (observation_seq[t] == vk)
                     occurrences += gamma[i][t];
             }
@@ -150,9 +150,61 @@ void BW::run_bw() {
     for (int i=0; i<hmm->M; i++)
         backward[i] = (double*)calloc(T, sizeof(double));
 
+
+    cout << "This is old pi: " << endl;
+    for (int i=0; i<hmm->M; i++) 
+        cout << hmm->pi[i] << " ";
+    cout << endl;
+
+
+    cout << "This is old A: " << endl;
+    for (int i=0; i<hmm->M; i++) {
+        for (int j=0; j<hmm->M; j++) {
+            cout << hmm->A[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+    cout << "This is old B: " << endl;
+    for (int i=0; i<hmm->M; i++) {
+        for (int j=0; j<hmm->N; j++) {
+            cout << hmm->B[i][j] << " ";
+        }
+        cout << endl;
+    }    
+
     bool has_converged = false;
-    while (!has_converged) {
+    int iterations = 0;
+    while (!has_converged && (iterations < max_iterations)) {
         forward_backward(forward, backward);
         has_converged = update_and_check(forward, backward);
+        iterations++;
     }
+
+    cout << "-----------------------------------------" << endl;
+
+    cout << "This is new pi: " << endl;
+    for (int i=0; i<hmm->M; i++) 
+        cout << hmm->pi[i] << " ";
+    cout << endl;
+
+
+    cout << "This is new A: " << endl;
+    for (int i=0; i<hmm->M; i++) {
+        for (int j=0; j<hmm->M; j++) {
+            cout << hmm->A[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+    cout << "This is new B: " << endl;
+    for (int i=0; i<hmm->M; i++) {
+        for (int j=0; j<hmm->N; j++) {
+            cout << hmm->B[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+
+
 }
