@@ -20,8 +20,8 @@ void HMM::initialize_vectors(char* input_file) {
 
     ifs >> N >> M;
 
-    cout << "N: " << N << endl;
-    cout << "M: " << M << endl;
+    //cout << "N: " << N << endl;
+    //cout << "M: " << M << endl;
 
     int i;
 

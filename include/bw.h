@@ -9,7 +9,7 @@
 #include "hmm.h"
 
 #define TH 1e-4
-#define MAX_ITERATIONS 10
+#define MAX_ITERATIONS 5
 
 class BW {
 

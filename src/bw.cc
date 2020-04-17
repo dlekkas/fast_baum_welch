@@ -7,40 +7,57 @@
 #include <iostream>
 
 using namespace std;
+double** g;
+
+int it=0;
 
 void BW::forward_backward(double** forward, double** backward) {
 
     int i, j, t;
+    double sc_factors[T];
 
-    for (i=0; i<hmm->M; i++)
+    double sum_i0 = 0.0;
+    for (i=0; i<hmm->M; i++) {
         forward[i][0] = hmm->pi[i] * hmm->B[i][observation_seq[0]];
+        sum_i0 += forward[i][0];
+    }
+    sc_factors[0] = 1.0/sum_i0;
+
+    for (i=0; i<hmm->M; i++) {
+        forward[i][0] = forward[i][0]*sc_factors[0];
+    }
 
     for (t=1; t<T; t++) {
+        double sum_i=0.0;
 	    for (i=0; i<hmm->M; i++) {
             double sum = 0.0;
             for (j=0; j<hmm->M; j++)
                 sum += forward[j][t-1] * hmm->A[j][i];
             forward[i][t] = hmm->B[i][observation_seq[t]] * sum;
+            sum_i += forward[i][t];
         }
+        sc_factors[t] = 1.0/sum_i;
+        for (i=0; i<hmm->M; i++)
+            forward[i][t] = forward[i][t]*sc_factors[t];
     }
 
     for (i=0; i<hmm->M; i++)
-        backward[i][T-1] = 1.0;
+        backward[i][T-1] = 1.0*sc_factors[T-1];
 
     for (t=T-2; t>=0; t--) {
         for (i=0; i<hmm->M; i++) {
             double sum = 0.0;
             for (j=0; j<hmm->M; j++)
                 sum += backward[j][t+1] * hmm->A[i][j] * hmm->B[j][observation_seq[t+1]]; 
-            backward[i][t] = sum;
+            backward[i][t] = sum*sc_factors[t];
         }
     }
+
 }
 
 bool BW::update_and_check(double** forward, double** backward) {
 
     int i, j, k, w, t, vk;
-    double gamma[hmm->M][T];
     bool converged = true;
 
     for (t=0; t<T; t++) {
@@ -48,7 +65,7 @@ bool BW::update_and_check(double** forward, double** backward) {
         for (j=0; j<hmm->M; j++)
             sum += forward[j][t] * backward[j][t];
         for (i=0; i<hmm->M; i++) 
-            gamma[i][t] = (forward[i][t] * backward[i][t])/sum;
+            g[i][t] = (forward[i][t] * backward[i][t])/sum;
     }
 
     double chsi[hmm->M][hmm->M][T];
@@ -66,6 +83,7 @@ bool BW::update_and_check(double** forward, double** backward) {
             }
     }
 
+
     double new_pi[hmm->M];
     double new_A[hmm->M][hmm->M];
     double new_B[hmm->M][hmm->N];
@@ -73,12 +91,12 @@ bool BW::update_and_check(double** forward, double** backward) {
     // estimate new initial vector, transition and emission matrixes
 
     for (i=0; i<hmm->M; i++)
-        new_pi[i] = gamma[i][0];
+        new_pi[i] = g[i][0];
 
     for (i=0; i<hmm->M; i++) {
         double sum = 0.0;
         for (t=0; t<T-1; t++)
-            sum += gamma[i][t];
+            sum += g[i][t];
         for (j=0; j<hmm->M; j++) {
             double sum2 = 0.0;
             for (t=0; t<T-1; t++)
@@ -90,12 +108,12 @@ bool BW::update_and_check(double** forward, double** backward) {
     for (i=0; i<hmm->M; i++) {
         double sum = 0.0;
         for (t=0; t<T; t++)
-            sum += gamma[i][t];
+            sum += g[i][t];
         for (vk=0; vk<hmm->N; vk++) {
             double occurrences  = 0.0;
             for (t=0; t<T; t++) {
                 if (observation_seq[t] == vk)
-                    occurrences += gamma[i][t];
+                    occurrences += g[i][t];
             }
             new_B[i][vk] = occurrences/sum;
         }
@@ -150,28 +168,9 @@ void BW::run_bw() {
     for (int i=0; i<hmm->M; i++)
         backward[i] = (double*)calloc(T, sizeof(double));
 
-
-    cout << "This is old pi: " << endl;
-    for (int i=0; i<hmm->M; i++) 
-        cout << hmm->pi[i] << " ";
-    cout << endl;
-
-
-    cout << "This is old A: " << endl;
-    for (int i=0; i<hmm->M; i++) {
-        for (int j=0; j<hmm->M; j++) {
-            cout << hmm->A[i][j] << " ";
-        }
-        cout << endl;
-    }
-
-    cout << "This is old B: " << endl;
-    for (int i=0; i<hmm->M; i++) {
-        for (int j=0; j<hmm->N; j++) {
-            cout << hmm->B[i][j] << " ";
-        }
-        cout << endl;
-    }    
+    g = (double**)malloc(hmm->M * sizeof(double*));
+    for (int i=0; i<hmm->M; i++)
+        g[i] = (double*)calloc(T, sizeof(double)); 
 
     bool has_converged = false;
     int iterations = 0;
@@ -179,25 +178,21 @@ void BW::run_bw() {
         forward_backward(forward, backward);
         has_converged = update_and_check(forward, backward);
         iterations++;
+        it++;
     }
 
-    cout << "-----------------------------------------" << endl;
-
-    cout << "This is new pi: " << endl;
-    for (int i=0; i<hmm->M; i++) 
-        cout << hmm->pi[i] << " ";
-    cout << endl;
-
-
-    cout << "This is new A: " << endl;
+    //cout.precision(4);
+    //cout << "This is new A: " << endl;
     for (int i=0; i<hmm->M; i++) {
         for (int j=0; j<hmm->M; j++) {
             cout << hmm->A[i][j] << " ";
         }
         cout << endl;
     }
+    cout << endl;
 
-    cout << "This is new B: " << endl;
+
+    //cout << "This is new B: " << endl;
     for (int i=0; i<hmm->M; i++) {
         for (int j=0; j<hmm->N; j++) {
             cout << hmm->B[i][j] << " ";
@@ -205,6 +200,18 @@ void BW::run_bw() {
         cout << endl;
     }
 
+    cout << endl;
 
+    //cout << "This is new pi: " << endl;
+    for (int i=0; i<hmm->M; i++) 
+        cout << hmm->pi[i] << " ";
+    cout << endl;
+
+    cout << endl;
+
+    for (int t=0; t<T; t++) {
+        cout << 1- (g[0][t] > 0.5) << " ";
+    }
+    cout << endl;
 
 }
