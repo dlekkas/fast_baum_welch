@@ -19,13 +19,13 @@ class HMM {
         int M;
 
         // initial state vector
-        std::vector<double> pi;
+        double* pi;
 
         // state transition matrix
-        std::vector<std::vector<double>> A;
+        double** A;
 
         // emission matrix
-        std::vector<std::vector<double>> B;
+        double** B;
 
 
 };

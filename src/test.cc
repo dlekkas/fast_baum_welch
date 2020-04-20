@@ -35,8 +35,7 @@ int main(int argc, char** argv) {
 		v.push_back(*it);
 	}
 
-    BW* baum_welch = new BW(model, v, v.size());
-    baum_welch->run_bw();
+    run_bw(model->M, model->N, v.size(), &v[0], model->pi, model->A, model->B);
 
     return 1;
 }
