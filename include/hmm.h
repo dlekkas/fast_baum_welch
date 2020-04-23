@@ -1,16 +1,22 @@
 #ifndef HMM_H
 #define HMM_H
 
+#include <string>
+
 
 class HMM {
 
 	public:
-		
+
 		HMM() {};
+
+		HMM(const std::string& input_file) {
+			initialize_vectors(input_file);
+		}
 
 		~HMM() {};
 
-		void initialize_vectors(char* input_file);
+		void initialize_vectors(const std::string& input_file);
 
         // number of observations
 		int N;
@@ -27,8 +33,7 @@ class HMM {
         // emission matrix
         double** B;
 
-
 };
 
 
-#endif 			
+#endif

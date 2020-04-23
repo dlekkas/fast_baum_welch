@@ -1,41 +1,29 @@
 #include <vector>
 #include <iostream>
 #include <random>
-#include <fstream> 
+#include <fstream>
 #include <sstream>
 #include <iterator>
 
 #include "../include/bw.h"
 
-using namespace std;
 
 int main(int argc, char** argv) {
 
     if (argc < 3) {
-        cout << "Usage: ./baum_welch <initialization file> <observations file>" << endl;
-        return 0;
-    }    
+		std::cout << "Usage: ./baum_welch <initialization file> \
+			<observations file>" << std::endl;
+		std::exit(1);
+    }
 
-    HMM* model = new HMM();
-    model->initialize_vectors(argv[1]);
-    
-    std::ifstream ifs;
-	ifs.open(argv[2], std::ios_base::in);
-	if (ifs.fail()) {
-		std::cerr << "Error opening file " << argv[2] << std::endl;
-		std::exit(2);
-	}
+    HMM model(argv[1]);
 
-    std::vector<int> v;
-    std::string tmp;
-	std::getline(ifs, tmp);
-    std::istringstream buf(tmp);
-    std::vector<double> line { std::istream_iterator<double>(buf), std::istream_iterator<double>()};
-	for (vector<double>::iterator it = line.begin(); it != line.end(); it++) {
-		v.push_back(*it);
-	}
+    std::vector<int> observations;
+    std::ifstream ifs(argv[2]);
+	std::copy(std::istream_iterator<double>(ifs),
+			  std::istream_iterator<double>(),
+			  std::back_inserter(observations));
 
-    run_bw(model->M, model->N, v.size(), &v[0], model->pi, model->A, model->B);
+    run_bw(model.M, model.N, observations.size(), observations.data(), model.pi, model.A, model.B);
 
-    return 1;
 }

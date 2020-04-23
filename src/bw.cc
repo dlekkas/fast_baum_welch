@@ -1,5 +1,5 @@
-/*  
-* Straightforward implementation of the Baum-Welch 
+/*
+* Straightforward implementation of the Baum-Welch
 * https://en.wikipedia.org/wiki/Baum–Welch_algorithm
 */
 #include <assert.h>
@@ -11,7 +11,8 @@ double** g;
 
 int it=0;
 
-void forward_backward(double** forward, double** backward, int M, int N, int T, double* pi, double** A, double** B, int* observation_seq) {
+void forward_backward(double** forward, double** backward, int M, int N, int T,
+		double* pi, double** A, double** B, int* observation_seq) {
 
     int i, j, t;
     double sc_factors[T];
@@ -48,14 +49,16 @@ void forward_backward(double** forward, double** backward, int M, int N, int T, 
         for (i=0; i<M; i++) {
             double sum = 0.0;
             for (j=0; j<M; j++)
-                sum += backward[j][t+1] * A[i][j] * B[j][observation_seq[t+1]]; 
+                sum += backward[j][t+1] * A[i][j] * B[j][observation_seq[t+1]];
             backward[i][t] = sum*sc_factors[t];
         }
     }
 
 }
 
-bool update_and_check(double** forward, double** backward, int M, int N, int T, double* pi, double** A, double** B, int* observation_seq) {
+
+bool update_and_check(double** forward, double** backward, int M, int N, int T,
+		double* pi, double** A, double** B, int* observation_seq) {
 
     int i, j, k, w, t, vk;
     bool converged = true;
@@ -64,7 +67,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T, 
         double sum = 0.0;
         for (j=0; j<M; j++)
             sum += forward[j][t] * backward[j][t];
-        for (i=0; i<M; i++) 
+        for (i=0; i<M; i++)
             g[i][t] = (forward[i][t] * backward[i][t])/sum;
     }
 
@@ -72,11 +75,11 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T, 
     for (t=0; t<T-1; t++) {
         double sum = 0.0;
         for (k=0; k<M; k++) {
-            for (w=0; w<M; w++) 
+            for (w=0; w<M; w++)
                 sum += forward[k][t] * A[k][w] * backward[w][t+1] * B[w][observation_seq[t+1]];
         }
         assert(sum != 0.0);
-        for (i=0; i<M; i++) 
+        for (i=0; i<M; i++)
             for (j=0; j<M; j++) {
                 chsi[i][j][t] = forward[i][t] * A[i][j] * backward[j][t+1] * B[j][observation_seq[t+1]];
                 chsi[i][j][t] = chsi[i][j][t]/sum;
@@ -170,7 +173,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
 
     g = (double**)malloc(M * sizeof(double*));
     for (int i=0; i<M; i++)
-        g[i] = (double*)calloc(T, sizeof(double)); 
+        g[i] = (double*)calloc(T, sizeof(double));
 
 
     bool has_converged = false;
@@ -182,7 +185,6 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
         it++;
     }
 
-    //cout.precision(4);
     //cout << "This is new A: " << endl;
     for (int i=0; i<M; i++) {
         for (int j=0; j<M; j++) {
@@ -204,7 +206,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
     cout << endl;
 
     //cout << "This is new pi: " << endl;
-    for (int i=0; i<M; i++) 
+    for (int i=0; i<M; i++)
         cout << pi[i] << " ";
     cout << endl;
 

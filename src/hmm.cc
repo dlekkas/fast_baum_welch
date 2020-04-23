@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <random>
-#include <fstream> 
+#include <fstream>
 #include <sstream>
 #include <iterator>
 
@@ -9,14 +9,9 @@
 
 using namespace std;
 
-void HMM::initialize_vectors(char* input_file) {
+void HMM::initialize_vectors(const std::string& input_file) {
 
-    std::ifstream ifs;
-	ifs.open(input_file, std::ios_base::in);
-	if (ifs.fail()) {
-		std::cerr << "Error opening file " << input_file << std::endl;
-		std::exit(2);
-	}
+    std::ifstream ifs(input_file);
 
     ifs >> N >> M;
 
