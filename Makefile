@@ -4,7 +4,6 @@ SRCDIR = src
 
 INCLUDEDIR = include
 CC = /usr/bin/g++
-#CFLAGS = -c -std=c++14 -Wall -O3 -g
 CFLAGS = -c -std=c++17 -Wall -O3 -g
 
 all: $(OUTDIR)/baum_welch

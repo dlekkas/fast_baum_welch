@@ -1,64 +1,63 @@
-#include <vector>
 #include <iostream>
-#include <random>
 #include <fstream>
 #include <sstream>
 #include <iterator>
 
 #include "../include/hmm.h"
 
-using namespace std;
 
 void HMM::initialize_vectors(const std::string& input_file) {
 
-    std::ifstream ifs(input_file);
+    std::ifstream ifs {input_file};
+    std::string line;
 
     ifs >> N >> M;
 
-    cout << "N: " << N << endl;
-    cout << "M: " << M << endl;
+	std::cout << "N: " << N << std::endl;
+	std::cout << "M: " << M << std::endl;
 
-    int i=0, j=0;
+	std::getline(ifs, line);
+	std::getline(ifs, line);
 
-    std::string tmp;
-	std::getline(ifs, tmp);
-    std::getline(ifs, tmp);
-    std::getline(ifs, tmp);
 
-    pi = (double*)malloc(M*sizeof(double));
-    std::istringstream buf(tmp);
-    std::vector<double> line { std::istream_iterator<double>(buf), std::istream_iterator<double>()};
-	for (vector<double>::iterator it = line.begin(); it != line.end(); it++) {
-		pi[i]=*it;
-        i++;
+    std::getline(ifs, line);
+	std::istringstream buf {line};
+	std::copy(std::istream_iterator<double>(buf),
+			  std::istream_iterator<double>(), std::back_inserter(pi));
+
+	std::getline(ifs, line);
+
+    A = new double*[M];
+	for (auto i = 0; i < M; i++) {
+		A[i] = new double[M];
+		std::getline(ifs, line);
+		std::istringstream buf(line);
+		std::copy(std::istream_iterator<double>(buf),
+				  std::istream_iterator<double>(), A[i]);
 	}
-    std::getline(ifs, tmp);
 
-    A = (double**)malloc(M*sizeof(double*));
-    for (i=0; i<M; i++) {
-        A[i] = (double*)malloc(M*sizeof(double));
-        j=0;
-        std::getline(ifs, tmp);
-        std::istringstream buf(tmp);
-        std::vector<double> line { std::istream_iterator<double>(buf), std::istream_iterator<double>()};
-		for (vector<double>::iterator it = line.begin(); it != line.end(); it++) {
-            A[i][j] = *it;
-            j++;
-	    }
-    }
+	std::getline(ifs, line);
 
-    std::getline(ifs, tmp);
+    B = new double*[M];
+	for (auto i = 0; i < M; i++) {
+        B[i] = new double[N];
+		std::getline(ifs, line);
+		std::istringstream buf(line);
+		std::copy(std::istream_iterator<double>(buf),
+				  std::istream_iterator<double>(), B[i]);
+	}
 
-    B = (double**)malloc(M*sizeof(double*));
-    for (i=0; i<M; i++) {
-        j=0;
-        B[i] = (double*)malloc(N*sizeof(double));
-        std::getline(ifs, tmp);
-        std::istringstream buf(tmp);
-        std::vector<double> line { std::istream_iterator<double>(buf), std::istream_iterator<double>()};
-		for (vector<double>::iterator it = line.begin(); it != line.end(); it++) {
-		    B[i][j] = *it;
-            j++;
-	    }
-    }
+}
+
+
+HMM::~HMM() {
+	for (int i = 0; i < M; i++) {
+		delete[] A[i];
+	}
+	for (int i = 0; i < N; i++) {
+		delete[] B[i];
+	}
+
+	delete[] A;
+	delete[] B;
 }

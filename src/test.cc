@@ -1,8 +1,6 @@
 #include <vector>
 #include <iostream>
-#include <random>
 #include <fstream>
-#include <sstream>
 #include <iterator>
 
 #include "../include/bw.h"
@@ -20,10 +18,9 @@ int main(int argc, char** argv) {
 
     std::vector<int> observations;
     std::ifstream ifs(argv[2]);
-	std::copy(std::istream_iterator<double>(ifs),
-			  std::istream_iterator<double>(),
+	std::copy(std::istream_iterator<double>(ifs), std::istream_iterator<double>(),
 			  std::back_inserter(observations));
 
-    run_bw(model.M, model.N, observations.size(), observations.data(), model.pi, model.A, model.B);
+    run_bw(model.M, model.N, observations.size(), observations.data(), model.pi.data(), model.A, model.B);
 
 }

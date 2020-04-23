@@ -2,7 +2,9 @@
 #define HMM_H
 
 #include <string>
+#include <vector>
 
+using Matrix = double**;
 
 class HMM {
 
@@ -14,7 +16,7 @@ class HMM {
 			initialize_vectors(input_file);
 		}
 
-		~HMM() {};
+		~HMM();
 
 		void initialize_vectors(const std::string& input_file);
 
@@ -25,13 +27,13 @@ class HMM {
         int M;
 
         // initial state vector
-        double* pi;
+		std::vector<double> pi;
 
         // state transition matrix
-        double** A;
+		Matrix A;
 
         // emission matrix
-        double** B;
+        Matrix B;
 
 };
 
