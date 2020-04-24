@@ -13,12 +13,8 @@ void HMM::initialize_vectors(const std::string& input_file) {
 
     ifs >> N >> M;
 
-	std::cout << "N: " << N << std::endl;
-	std::cout << "M: " << M << std::endl;
-
 	std::getline(ifs, line);
 	std::getline(ifs, line);
-
 
     std::getline(ifs, line);
 	std::istringstream buf {line};
