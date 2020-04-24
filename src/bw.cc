@@ -186,6 +186,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
     }
 
     //cout << "This is new A: " << endl;
+	/*
     for (int i=0; i<M; i++) {
         for (int j=0; j<M; j++) {
             cout << A[i][j] << " ";
@@ -216,5 +217,6 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
         cout << 1- (g[0][t] > 0.5) << " ";
     }
     cout << endl;
+	*/
 
 }

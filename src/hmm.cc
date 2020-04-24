@@ -30,8 +30,7 @@ void HMM::initialize_vectors(const std::string& input_file) {
     A = new double*[M];
 	for (auto i = 0; i < M; i++) {
 		A[i] = new double[M];
-		std::getline(ifs, line);
-		std::istringstream buf(line);
+		std::getline(ifs, line); std::istringstream buf(line);
 		std::copy(std::istream_iterator<double>(buf),
 				  std::istream_iterator<double>(), A[i]);
 	}
@@ -41,8 +40,7 @@ void HMM::initialize_vectors(const std::string& input_file) {
     B = new double*[M];
 	for (auto i = 0; i < M; i++) {
         B[i] = new double[N];
-		std::getline(ifs, line);
-		std::istringstream buf(line);
+		std::getline(ifs, line); std::istringstream buf(line);
 		std::copy(std::istream_iterator<double>(buf),
 				  std::istream_iterator<double>(), B[i]);
 	}
