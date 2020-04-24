@@ -2,11 +2,11 @@
 * Straightforward implementation of the Baum-Welch
 * https://en.wikipedia.org/wiki/Baum–Welch_algorithm
 */
+#include <iostream>
 #include <assert.h>
 #include "../include/bw.h"
-#include <iostream>
 
-using namespace std;
+//using namespace std;
 double** g;
 
 int it=0;
@@ -185,38 +185,38 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
         it++;
     }
 
-    //cout << "This is new A: " << endl;
-	/*
-    for (int i=0; i<M; i++) {
-        for (int j=0; j<M; j++) {
-            cout << A[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
+	#ifdef DEBUG
+		using namespace std;
+
+		cout << endl << "--------------------------  DEBUG START -------------------------- " << endl;
+
+		cout << "Matrix A:" << endl;
+		for (int i=0; i<M; i++) {
+			for (int j=0; j<M; j++) {
+				cout << A[i][j] << " ";
+			}
+			cout << endl;
+		}
+
+		cout << endl << "Matrix B:" << endl;
+		for (int i=0; i<M; i++) {
+			for (int j=0; j<N; j++) {
+				cout << B[i][j] << " ";
+			}
+			cout << endl;
+		}
 
 
-    //cout << "This is new B: " << endl;
-    for (int i=0; i<M; i++) {
-        for (int j=0; j<N; j++) {
-            cout << B[i][j] << " ";
-        }
-        cout << endl;
-    }
+		cout << endl << "Pi vector:" << endl;
+		for (int i=0; i<M; i++)
+			cout << pi[i] << " ";
+		cout << endl << endl;
 
-    cout << endl;
+		for (int t=0; t<T; t++) {
+			cout << 1- (g[0][t] > 0.5) << " ";
+		}
+		cout << endl << "-------------------------- DEBUG END -------------------------- " << endl;
 
-    //cout << "This is new pi: " << endl;
-    for (int i=0; i<M; i++)
-        cout << pi[i] << " ";
-    cout << endl;
-
-    cout << endl;
-
-    for (int t=0; t<T; t++) {
-        cout << 1- (g[0][t] > 0.5) << " ";
-    }
-    cout << endl;
-	*/
+	#endif
 
 }
