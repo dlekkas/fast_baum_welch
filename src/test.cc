@@ -12,8 +12,7 @@
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-		std::cout << "Usage: ./baum_welch <initialization file> \
-			<observations file>" << std::endl;
+		std::cout << "Usage: ./baum_welch <initialization file> <observations file>" << std::endl;
 		std::exit(1);
     }
 	std::string init_file {argv[1]};
