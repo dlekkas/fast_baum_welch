@@ -15,14 +15,12 @@
 
 #include <vector>
 
-
 /*
  * Implementation based on Dirichlet Distribution from Wikipedia in the
  * subsection Gamma Distribution of section Random Number Generation:
  * https://en.wikipedia.org/wiki/Dirichlet_distribution#Random_number_generation
  */
 std::vector<double> dirichlet_sample(int n_samples, const std::vector<double>& alpha, double beta = 1.0);
-
 
 /* The normalization factor is expressed in terms of the multiplication
  * of gamma functions (see wiki link). For symmetric dirichlet distribution,
@@ -33,7 +31,11 @@ std::vector<double> dirichlet_sample(int n_samples, const std::vector<double>& a
  */
 std::vector<double> symmetric_dirichlet_sample(int n_samples, double concentrate = 1.0, double beta = 1.0);
 
-
 std::vector<double> uniform_dist_sample(int n_samples);
+
+std::vector<int> weighted_emission_sample(int n_samples, const std::vector<int>& weights);
+
+std::vector<int> uniform_emission_sample(int n_samples);
+
 
 #endif

@@ -45,6 +45,44 @@ void perf_test_rdtscp(const std::string& init_file, std::vector<int>& observatio
 }
 
 
+void perf_test_rdtscp_random(compute_func baum_welch, int N, int M,
+		int n_runs, int n_iter, std::ostream& xout) {
+
+	std::vector<double> cycles_list;
+
+	HMM model(N, M);
+	std::vector<int> observations = uniform_emission_sample(N);
+
+	init_tsc();
+	for (auto i = 0; i < n_iter; i++) {
+		model.InitParamsRandom();
+
+		uint64_t start = start_tsc();
+		for (auto j = 0; j < n_runs; j++) {
+			baum_welch(model.M, model.N, observations.size(), observations.data(), \
+				   model.pi.data(), model.A, model.B);
+		}
+		uint64_t end = stop_tsc();
+		uint64_t cycles = (end - start) / (double) n_runs;
+
+		cycles_list.emplace_back(cycles);
+	}
+
+
+	std::sort(cycles_list.begin(), cycles_list.end());
+
+	double median = (n_iter % 2 == 0) ? cycles_list[n_iter/2] :
+			(cycles_list[n_iter/2] + cycles_list[n_iter/2+1]) / 2;
+
+	double average = std::accumulate(cycles_list.begin(),
+			cycles_list.end(), 0.0) / cycles_list.size();
+
+	xout << "[RDTSCP] Cycles elapsed (MIN): " << cycles_list.front() << std::endl;
+	xout << "[RDTSCP] Cycles elapsed (MAX): " << cycles_list.back() << std::endl;
+	xout << "[RDTSCP] Cycles elapsed (Mean): " << average << std::endl;
+	xout << "[RDTSCP] Cycles elapsed (Median): " << median << std::endl;
+
+}
 
 
 void perf_test_chrono(const std::string& init_file, std::vector<int>& observations,

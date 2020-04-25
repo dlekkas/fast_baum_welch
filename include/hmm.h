@@ -14,9 +14,12 @@ class HMM {
 
 	public:
 
-		HMM(): A(nullptr), B(nullptr) {};
+		HMM(int emissions, int states):
+			N(emissions), M(states),
+			A(nullptr), B(nullptr) {};
 
-		HMM(const std::string& input_file): A(nullptr), B(nullptr) {
+		HMM(const std::string& input_file):
+			A(nullptr), B(nullptr) {
 			InitParamsFromFile(input_file);
 		}
 

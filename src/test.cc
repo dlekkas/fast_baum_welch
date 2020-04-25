@@ -22,6 +22,7 @@ int main(int argc, char** argv) {
 	std::copy(std::istream_iterator<double>(ifs), std::istream_iterator<double>(),
 			  std::back_inserter(observations));
 
+	/* perf_test_rdtscp_random(&run_bw, 2, 3, N_RUNS, N_ITERATIONS, std::cout); */
 
 	/* print all benchmarking results to a file */
 	/*

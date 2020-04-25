@@ -44,3 +44,33 @@ vector<double> symmetric_dirichlet_sample(int n_samples, double concentrate, dou
 vector<double> uniform_dist_sample(int n_samples) {
 	return symmetric_dirichlet_sample(n_samples, 1.0, 1.0);
 }
+
+
+vector<int> weighted_emission_sample(int n_samples, const vector<int>& weights) {
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::discrete_distribution<> dist(weights.begin(), weights.end());
+
+	vector<int> res(n_samples);
+	for (auto i = 0; i < n_samples; i++) {
+		res[i] = dist(gen);
+	}
+
+	return res;
+}
+
+vector<int> uniform_emission_sample(int n_samples) {
+	vector<double> weights(n_samples, 1.0);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::discrete_distribution<> dist(weights.begin(), weights.end());
+
+	vector<int> res(n_samples);
+	for (auto i = 0; i < n_samples; i++) {
+		res[i] = dist(gen);
+	}
+
+	return res;
+}

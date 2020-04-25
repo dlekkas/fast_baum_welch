@@ -13,4 +13,7 @@ void perf_test_rdtscp(const std::string& init_file, std::vector<int>& observatio
 void perf_test_chrono(const std::string& init_file, std::vector<int>& observations,
 		compute_func baum_welch, int n_runs, int n_iterations, std::ostream& os);
 
+void perf_test_rdtscp_random(compute_func baum_welch, int N, int M, int n_runs,
+		int n_iter, std::ostream& xout);
+
 #endif
