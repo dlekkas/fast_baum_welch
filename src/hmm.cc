@@ -6,7 +6,7 @@
 #include "../include/hmm.h"
 
 
-void HMM::initialize_vectors(const std::string& input_file) {
+void HMM::InitParamsFromFile(const std::string& input_file) {
 
     std::ifstream ifs {input_file};
     std::string line;
@@ -44,14 +44,27 @@ void HMM::initialize_vectors(const std::string& input_file) {
 }
 
 
-HMM::~HMM() {
-	for (int i = 0; i < M; i++) {
-		delete[] A[i];
+void HMM::InitParamsRandom() {
+	pi = symmetric_dirichlet_sample(M);
+	for (auto i = 0; i < M; i++) {
+		transition[i] = symmetric_dirichlet_sample(M);
+		emission[i] = symmetric_dirichlet_sample(N);
 	}
-	for (int i = 0; i < N; i++) {
-		delete[] B[i];
+}
+
+
+HMM::~HMM() {
+	if (A != nullptr) {
+		for (int i = 0; i < M; i++) {
+			delete[] A[i];
+		}
+		delete[] A;
 	}
 
-	delete[] A;
-	delete[] B;
+	if (B != nullptr) {
+		for (int i = 0; i < N; i++) {
+			delete[] B[i];
+		}
+		delete[] B;
+	}
 }

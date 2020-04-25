@@ -4,21 +4,29 @@
 #include <string>
 #include <vector>
 
+#include "generator.h"
+
 using Matrix = double**;
+
+using Matrix_v = std::vector<std::vector<double>>;
 
 class HMM {
 
 	public:
 
-		HMM() {};
+		HMM(): A(nullptr), B(nullptr) {};
 
-		HMM(const std::string& input_file) {
-			initialize_vectors(input_file);
+		HMM(const std::string& input_file): A(nullptr), B(nullptr) {
+			InitParamsFromFile(input_file);
 		}
 
 		~HMM();
 
-		void initialize_vectors(const std::string& input_file);
+		void InitParamsFromFile(const std::string& input_file);
+
+
+		void InitParamsRandom();
+
 
         // number of observations
 		int N;
@@ -34,6 +42,10 @@ class HMM {
 
         // emission matrix
         Matrix B;
+
+		Matrix_v transition;
+
+		Matrix_v emission;
 
 };
 
