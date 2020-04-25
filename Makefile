@@ -46,7 +46,7 @@ $(OBJDIR)/bw_dbg.o: $(SRCDIR)/bw.cc $(INCLUDEDIR)/bw.h
 	$(CC) -o $@ $(DBGFLAGS) $(CFLAGS) $(SRCDIR)/bw.cc
 
 $(OUTDIR)/baum_welch_basic_opts_dbg: $(OBJDIR)/bw_dbg_basic_opts.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o
-	$(CC) $(OBJDIR)/bw_dbg_basic_opts.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o -o $@
+	$(CC) $(OBJDIR)/bw_dbg_basic_opts.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
 
 $(OBJDIR)/bw_dbg_basic_opts.o: $(SRCDIR)/bw_basic_opts.cc $(INCLUDEDIR)/bw.h
 	$(CC) -o $@ $(DBGFLAGS) $(CFLAGS) $(SRCDIR)/bw_basic_opts.cc

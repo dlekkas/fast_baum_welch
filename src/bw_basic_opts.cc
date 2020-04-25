@@ -6,15 +6,15 @@
 #include <assert.h>
 #include "../include/bw.h"
 
+using namespace std;
 double** g;
 
 int it=0;
 
 void forward_backward(double** forward, double** backward, int M, int N, int T,
-		double* pi, double** A, double** B, int* observation_seq) {
+		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
 
     int i, j, t;
-    double sc_factors[T];
 
     double sum_i0 = 0.0;
     for (i=0; i<M; i++) {
@@ -57,31 +57,33 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 
 
 bool update_and_check(double** forward, double** backward, int M, int N, int T,
-		double* pi, double** A, double** B, int* observation_seq) {
+		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
 
-    int i, j, k, w, t, vk;
+    int i, j, t, vk;
     bool converged = true;
+
+    // denominators of gamma[i][t] and chsi[i][j][t] are the same
+    // and independent of i, j
+    double denom[T];
 
     for (t=0; t<T; t++) {
         double sum = 0.0;
         for (j=0; j<M; j++)
             sum += forward[j][t] * backward[j][t];
+        denom[t] = sum;
         for (i=0; i<M; i++)
             g[i][t] = (forward[i][t] * backward[i][t])/sum;
     }
 
     double chsi[M][M][T];
+    double den;
     for (t=0; t<T-1; t++) {
-        double sum = 0.0;
-        for (k=0; k<M; k++) {
-            for (w=0; w<M; w++)
-                sum += forward[k][t] * A[k][w] * backward[w][t+1] * B[w][observation_seq[t+1]];
-        }
-        assert(sum != 0.0);
+        den = denom[t] / sc_factors[t];
+        assert(den != 0.0);
         for (i=0; i<M; i++)
             for (j=0; j<M; j++) {
                 chsi[i][j][t] = forward[i][t] * A[i][j] * backward[j][t+1] * B[j][observation_seq[t+1]];
-                chsi[i][j][t] = chsi[i][j][t]/sum;
+                chsi[i][j][t] = chsi[i][j][t] / den;
             }
     }
 
@@ -161,9 +163,11 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
 
     bool has_converged = false;
     int iterations = 0;
+    double *sc_factors = (double *)malloc(T * sizeof(double));
+
     while (!has_converged && (iterations < MAX_ITERATIONS)) {
-        forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence);
-        has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence);
+        forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors);
+        has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors);
         iterations++;
         it++;
     }
