@@ -62,7 +62,7 @@ HMM::~HMM() {
 	}
 
 	if (B != nullptr) {
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < M; i++) {
 			delete[] B[i];
 		}
 		delete[] B;

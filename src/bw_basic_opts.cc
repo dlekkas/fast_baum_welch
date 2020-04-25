@@ -64,26 +64,27 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
 
     // denominators of gamma[i][t] and chsi[i][j][t] are the same
     // and independent of i, j
-    double denom[T];
+    // double denom[T];
 
     for (t=0; t<T; t++) {
         double sum = 0.0;
         for (j=0; j<M; j++)
             sum += forward[j][t] * backward[j][t];
-        denom[t] = sum;
+        // denom[t] = sum;
         for (i=0; i<M; i++)
             g[i][t] = (forward[i][t] * backward[i][t])/sum;
     }
 
     double chsi[M][M][T];
-    double den;
+    //double den;
     for (t=0; t<T-1; t++) {
-        den = denom[t] / sc_factors[t];
-        assert(den != 0.0);
+        // den = denom[t] / sc_factors[t];
+        // We proved by induction that the denominator of this chsi[i][j][t] is 1. We need to validate it and review the proof to be sure.
+        // If this fails, we can merge the computation of gamma and chsi.
         for (i=0; i<M; i++)
             for (j=0; j<M; j++) {
                 chsi[i][j][t] = forward[i][t] * A[i][j] * backward[j][t+1] * B[j][observation_seq[t+1]];
-                chsi[i][j][t] = chsi[i][j][t] / den;
+                // chsi[i][j][t] = chsi[i][j][t] / den;
             }
     }
 
