@@ -67,12 +67,12 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     // double denom[T];
 
     for (t=0; t<T; t++) {
-        double sum = 0.0;
-        for (j=0; j<M; j++)
-            sum += forward[j][t] * backward[j][t];
+        // double sum = 0.0;
+        // for (j=0; j<M; j++)
+           // sum += forward[j][t] * backward[j][t];
         // denom[t] = sum;
         for (i=0; i<M; i++)
-            g[i][t] = (forward[i][t] * backward[i][t])/sum;
+            g[i][t] = (forward[i][t] * backward[i][t])/sc_factors[t];
     }
 
     double chsi[M][M][T];
