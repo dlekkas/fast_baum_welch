@@ -8,10 +8,10 @@ using namespace std;
 using Matrix_v = vector<vector<double>>;
 
 Matrix_v forward(const Matrix_v&, const Matrix_v&, const vector<int>&,
-		const vector<double>&);
+		const vector<double>&, vector<double>&);
 
 Matrix_v backward(const Matrix_v&,  const Matrix_v&, const vector<int>&,
-		const vector<double>&);
+		const vector<double>&, const vector<double>&);
 
 void maximization_step(Matrix_v&, Matrix_v&, const vector<int>&,
 		const Matrix_v&, const vector<Matrix_v>&);
@@ -35,9 +35,12 @@ void baum_welch(Matrix_v& transition, Matrix_v& emission, vector<double>& init_p
 	/* probability of being in state `i` at time `t` */
 	Matrix_v gamma(n_states, vector<double>(T));
 
+	/* scaling factors required to avoid summation to zero due to limited precision */
+	vector<double> scale_c(T);
+
 	for (int i = 0; i < MAX_ITER; i++) {
-		Matrix_v fwd = forward(transition, emission, observation, init_prob);
-		Matrix_v bwd = backward(transition, emission, observation, init_prob);
+		Matrix_v fwd = forward(transition, emission, observation, init_prob, scale_c);
+		Matrix_v bwd = backward(transition, emission, observation, init_prob, scale_c);
 
 		/* EXPECTATION step */
 		expectation_step(transition, emission, fwd, bwd, observation, gamma, ksi);
@@ -155,28 +158,43 @@ void maximization_step(Matrix_v& transition, Matrix_v& emission, const vector<in
 }
 
 
-/* operations = (3 * T * (N^2)) + N */
 Matrix_v forward(const Matrix_v& transition, const Matrix_v& emission,
-	 const vector<double>& init_prob, const vector<int>& observation) {
+	 const vector<double>& init_prob, const vector<int>& observation,
+	 vector<double>& scale_c) {
 
 	int n_states = transition.size();
 	int T = observation.size();
 
 	Matrix_v fwd(T, vector<double>(n_states));
 
+
 	/* calculate initial probability */
-	/* operations = N */
 	for (int i = 0; i < n_states; i++) {
 		fwd[0][i] = init_prob[i] * emission[i][observation[0]];
+		scale_c[0] += fwd[0][i];
 	}
 
+	scale_c[0] = 1.0 / scale_c[0];
+
+	/* scaling scheme initialization step */
+	for (int i = 0; i < n_states; i++) {
+		fwd[0][i] *= scale_c[0];
+	}
+
+
 	/* employ dynamic programming to drop exponential complexity to O(T*(N^2)) */
-	/* operations = 3 * T * (N^2) */
 	for (int t = 1; t < T; t++) {
+
 		for (int j = 0; j < n_states; j++) {
 			for (int k = 0; k < n_states; k++) {
 				fwd[t][j] += fwd[t-1][k] * transition[k][j] * emission[j][observation[t]];
 			}
+			scale_c[t] += fwd[t][j];
+		}
+		scale_c[t] = (1.0 / scale_c[t]);
+
+		for (int j = 0; j < n_states; j++) {
+			fwd[t][j] *= scale_c[t];
 		}
 	}
 
@@ -186,7 +204,8 @@ Matrix_v forward(const Matrix_v& transition, const Matrix_v& emission,
 
 /* operations = {3 * (T-1) * (N^2)} + N */
 Matrix_v backward(const Matrix_v& transition, const Matrix_v& emission,
-		const vector<double>& init_prob, const vector<int>& observation) {
+		const vector<double>& init_prob, const vector<int>& observation,
+		const vector<double>& scale_c) {
 
 	int n_states = transition.size();
 	int T = observation.size();
@@ -195,15 +214,16 @@ Matrix_v backward(const Matrix_v& transition, const Matrix_v& emission,
 
 	/* initialization step (n_ops = N) */
 	for (int i = 0; i < n_states; i++) {
-		bwd[i][T-1] = 1.0;
+		bwd[i][T-1] = scale_c[T-1];
 	}
 
 	/* recursion - DP step { n_ops = 3 * (T-1) * (N^2)) } */
 	for (int i = 0; i < n_states; i++) {
-		for (int t = 0; t < T-1; t++) {
+		for (int t = T-2; t >= 0; t--) {
 			for (int j = 0; j < n_states; j++) {
 				bwd[i][t] += transition[i][j] * emission[j][observation[t+1]] * bwd[j][t+1];
 			}
+			bwd[i][t] *= scale_c[t];
 		}
 	}
 
