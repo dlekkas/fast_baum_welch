@@ -26,9 +26,9 @@ sudo apt-get install \
 ```
 
 ### Linux/Unix Build
-Run from team32 directory after cloning the repo:
+Run from team032 directory after cloning the repo:
 ```
-mkdir build
+mkdir build && cd build
 cmake ..
 make
 ```
