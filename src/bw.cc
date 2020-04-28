@@ -6,7 +6,6 @@
 #include <assert.h>
 #include "../include/bw.h"
 
-//using namespace std;
 double** g;
 
 int it=0;
@@ -67,6 +66,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
         double sum = 0.0;
         for (j=0; j<M; j++)
             sum += forward[j][t] * backward[j][t];
+
         for (i=0; i<M; i++)
             g[i][t] = (forward[i][t] * backward[i][t])/sum;
     }
@@ -178,7 +178,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
 
     bool has_converged = false;
     int iterations = 0;
-    while (!has_converged && (iterations < MAX_ITERATIONS)) {
+    while (iterations < 1) {
         forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence);
         has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence);
         iterations++;

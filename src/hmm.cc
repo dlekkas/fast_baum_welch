@@ -46,10 +46,21 @@ void HMM::InitParamsFromFile(const std::string& input_file) {
 
 void HMM::InitParamsRandom() {
 	pi = symmetric_dirichlet_sample(M);
+
+	transition.reserve(M);
+	emission.reserve(M);
 	for (auto i = 0; i < M; i++) {
-		transition[i] = symmetric_dirichlet_sample(M);
-		emission[i] = symmetric_dirichlet_sample(N);
+		transition.emplace_back(symmetric_dirichlet_sample(M));
+		emission.emplace_back(symmetric_dirichlet_sample(N));
 	}
+}
+
+
+void HMM::InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
+		const std::vector<double>& init_prob) {
+	transition = trans;
+	emission = emis;
+	pi = init_prob;
 }
 
 

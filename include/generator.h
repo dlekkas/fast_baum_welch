@@ -35,7 +35,7 @@ std::vector<double> uniform_dist_sample(int n_samples);
 
 std::vector<int> weighted_emission_sample(int n_samples, const std::vector<int>& weights);
 
-std::vector<int> uniform_emission_sample(int n_samples);
+std::vector<int> uniform_emission_sample(int n_samples, int M);
 
 
 #endif

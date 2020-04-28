@@ -5,18 +5,23 @@ SRCDIR = src
 INCLUDEDIR = include
 CC = /usr/bin/g++
 
-CFLAGS = -c -std=c++17 -Wall -O3
+CFLAGS = -c -std=c++17 -Wall -O3 -DDEBUG
 
 DBGFLAGS = -g -DDEBUG
 
 
-all: $(OUTDIR)/baum_welch $(OUTDIR)/baum_welch_basic_opts
+all: $(OUTDIR)/baum_welch $(OUTDIR)/baum_welch_basic_opts $(OUTDIR)/baum_welch_baseline
+#all: $(OUTDIR)/baum_welch_baseline
 
-$(OUTDIR)/baum_welch: $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
-	$(CC) $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
+$(OUTDIR)/baum_welch: $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
+	$(CC) $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
 
-$(OUTDIR)/baum_welch_basic_opts: $(OBJDIR)/bw_basic_opts.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
-	$(CC) $(OBJDIR)/bw_basic_opts.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
+$(OUTDIR)/baum_welch_basic_opts: $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw_basic_opts.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
+	$(CC) $(OBJDIR)/bw_basic_opts.o $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
+
+
+$(OUTDIR)/baum_welch_baseline: $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
+	$(CC) $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
 
 $(OBJDIR)/test.o: $(SRCDIR)/test.cc $(INCLUDEDIR)/bw.h
 	$(CC) -o $@ $(CFLAGS) $(SRCDIR)/test.cc
@@ -35,6 +40,9 @@ $(OBJDIR)/benchmark.o: $(SRCDIR)/benchmark.cc $(INCLUDEDIR)/benchmark.h
 
 $(OBJDIR)/generator.o: $(SRCDIR)/generator.cc $(INCLUDEDIR)/generator.h
 	$(CC) -o $@ $(CFLAGS) $(SRCDIR)/generator.cc
+
+$(OBJDIR)/baum_baseline_impl.o: $(SRCDIR)/baum_baseline_impl.cc $(INCLUDEDIR)/bw.h
+	$(CC) -o $@ $(CFLAGS) $(SRCDIR)/baum_baseline_impl.cc
 
 
 debug: $(OUTDIR)/baum_welch_dbg $(OUTDIR)/baum_welch_basic_opts_dbg

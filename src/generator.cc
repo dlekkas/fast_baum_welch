@@ -15,6 +15,7 @@ vector<double> dirichlet_sample(int n_samples, const vector<double>& alpha, doub
 	std::mt19937 gen(rd());
 
 	vector<std::gamma_distribution<>> dist(n_samples);
+
 	for (auto i = 0; i < n_samples; i++) {
 		dist[i] = std::gamma_distribution<>(alpha[i], beta);
 	}
@@ -60,8 +61,8 @@ vector<int> weighted_emission_sample(int n_samples, const vector<int>& weights) 
 	return res;
 }
 
-vector<int> uniform_emission_sample(int n_samples) {
-	vector<double> weights(n_samples, 1.0);
+vector<int> uniform_emission_sample(int n_samples, int M) {
+	vector<double> weights(M, 1.0);
 
 	std::random_device rd;
 	std::mt19937 gen(rd());

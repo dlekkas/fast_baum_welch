@@ -166,7 +166,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
     int iterations = 0;
     double *sc_factors = (double *)malloc(T * sizeof(double));
 
-    while (!has_converged && (iterations < MAX_ITERATIONS)) {
+    while (iterations < MAX_ITERATIONS) {
         forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors);
         has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors);
         iterations++;

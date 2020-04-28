@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "generator.h"
 
@@ -10,13 +11,17 @@ using Matrix = double**;
 
 using Matrix_v = std::vector<std::vector<double>>;
 
+
 class HMM {
 
 	public:
 
-		HMM(int emissions, int states):
-			N(emissions), M(states),
-			A(nullptr), B(nullptr) {};
+		HMM(int states, int emissions):
+			M(states),
+			N(emissions),
+			A(nullptr),
+			B(nullptr)
+		{ }
 
 		HMM(const std::string& input_file):
 			A(nullptr), B(nullptr) {
@@ -30,12 +35,15 @@ class HMM {
 
 		void InitParamsRandom();
 
+		void InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
+				const std::vector<double>& init_prob);
 
-        // number of observations
-		int N;
 
         // number of states
         int M;
+
+        // number of observations
+		int N;
 
         // initial state vector
 		std::vector<double> pi;

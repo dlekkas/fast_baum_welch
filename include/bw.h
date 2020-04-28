@@ -14,5 +14,8 @@ bool update_and_check(double** forward, double** backward, int M, int N,
 
 void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B);
 
+void baum_welch(Matrix_v& transition, Matrix_v& emission, std::vector<double>& init_prob,
+		const std::vector<int>& observations);
+
 
 #endif

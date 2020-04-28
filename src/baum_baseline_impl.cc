@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
 
-#define MAX_ITER 1
+#include "../include/bw.h"
+
+#define MAX_ITER 5
 
 using namespace std;
 
@@ -54,27 +56,20 @@ void baum_welch(Matrix_v& transition, Matrix_v& emission, vector<double>& init_p
 	#ifdef DEBUG
 		cout << endl << "Transition matrix" << endl;
 		for (auto row: transition) {
-			for (auto x: row) {
-				cout << x << " ";
-			}
+			for (auto x: row) { cout << x << " "; }
 			cout << endl;
 		}
 
 		cout << endl << "Emission matrix" << endl;
 		for (auto row: emission) {
-			for (auto x: row) {
-				cout << x << " ";
-			}
+			for (auto x: row) { cout << x << " "; }
 			cout << endl;
 		}
 
 		cout << endl << "Init prob vector" << endl;
-		for (auto x: init_prob) {
-			cout << x << " ";
-		}
+		for (auto x: init_prob) { cout << x << " "; }
 		cout << endl;
 	#endif
-
 }
 
 
@@ -95,14 +90,7 @@ void expectation_step(const Matrix_v& transition, const Matrix_v& emission,
 			obs_prob += fwd[t][j] * bwd[t][j];
 		}
 
-
 		for (int i = 0; i < n_states; i++) {
-			// joint probability of being in state `i` at time `t` and
-			// observing the sequence `observation`
-			double joint_prob = fwd[t][i] * bwd[t][i];
-
-			// straightforward derivation from Bayes' theorem
-			gamma[i][t] = joint_prob / obs_prob;
 
 			for (int j = 0; j < n_states; j++) {
 				// probability of being in state `i` at time `t`, at state `j`
@@ -114,32 +102,26 @@ void expectation_step(const Matrix_v& transition, const Matrix_v& emission,
 				ksi[t][i][j] = joint_prob ;/// obs_prob;
 			}
 		}
-
 	}
 
-	#ifdef DEBUG
-		cout << endl << "Ksi matrix" << endl;
-		for (auto mat: ksi) {
-			cout << "------------------" << endl;
-			for (auto row: mat) {
-				for (auto x: row) {
-					cout << x << " ";
-				}
-				cout << endl;
-			}
-		}
-	#endif
 
-
-	#ifdef DEBUG
-		cout << endl << "Gamma matrix" << endl;
-		for (auto& row: gamma) {
-			for (auto x: row) {
-				cout << x << " ";
-			}
-			cout << endl;
+	for (int t = 0; t < T; t++) {
+		// probability of observing sequence `observation` given the HMM model
+		double obs_prob = 0.0;
+		for (int j = 0; j < n_states; j++) {
+			obs_prob += fwd[t][j] * bwd[t][j];
 		}
-	#endif
+
+		for (int i = 0; i < n_states; i++) {
+			// joint probability of being in state `i` at time `t` and
+			// observing the sequence `observation`
+			double joint_prob = fwd[t][i] * bwd[t][i];
+
+			// straightforward derivation from Bayes' theorem
+			gamma[i][t] = joint_prob / obs_prob;
+		}
+	}
+
 }
 
 
@@ -276,21 +258,3 @@ Matrix_v backward(const Matrix_v& transition, const Matrix_v& emission,
 
 	return bwd;
 }
-
-
-int main() {
-
-
-	Matrix_v transition = {{0.4281, 0.5719}, {0.7113, 0.2887}};
-	Matrix_v emission = {{0.0349, 0.1115, 0.8535},
-				{0.2157, 0.3407, 0.4436}};
-
-	vector<double> pi = {0.2778, 0.7222};
-
-	vector<int> obs = { 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, };
-
-
-	baum_welch(transition, emission, pi, obs);
-}
-
-
