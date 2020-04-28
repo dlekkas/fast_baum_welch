@@ -6,3 +6,29 @@ We are going to implement a fast numerical version of the Baum-Welch algorithm f
 We will start with a straightforward implementation of the algorithm in C++.
 Then we will create some test infrastructure to validate our implementation, and a timing infrastructure to measure the performance.
 We will continue by applying optimization techniques and we will update README with the techniques we try.
+
+
+## Building Procedure
+### System Setup
+In our project, we use CMake as our build configuration system. Particularly, the building of our
+system requires:
+
+* A C++17-enabled compiler. On Linux, gcc 8.3 should be sufficient.
+* CMake 3.10 or higher
+* On Linux and macOS, `make` utilities
+
+On Ubuntu/Debian you can install the requirements with:
+
+```
+sudo apt-get install \
+	  build-essential \
+	  cmake
+```
+
+### Linux/Unix Build
+Run from team32 directory after cloning the repo:
+```
+mkdir build
+cmake ..
+make
+```
