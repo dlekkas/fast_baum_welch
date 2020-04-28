@@ -6,33 +6,31 @@
 #include "../include/bw.h"
 #include "../include/benchmark.h"
 
-#define N_ITERATIONS 1
+#define N_ITERATIONS 10
 #define N_RUNS 1
 
 
 int main(int argc, char** argv) {
-	std::cout << "Usage: ./baum_welch [<initialization file>] [<observations file>]" << std::endl;
 
-	if (argc >= 3) {
-		std::string init_file = argv[1];
-		std::vector<int> observations;
-		std::ifstream ifs(argv[2]);
-		std::copy(std::istream_iterator<double>(ifs), std::istream_iterator<double>(),
-				  std::back_inserter(observations));
-		perf_test_chrono(init_file, observations, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
-	} else {
-		perf_test_rdtscp_random(&baum_welch, 6, 2, N_RUNS, N_ITERATIONS, std::cout);
-	}
-
-
-	/* print all benchmarking results to a file */
 	/*
-	std::ofstream ofs("results.txt");
-	perf_test_chrono(init_file, observations, &run_bw, N_RUNS, N_ITERATIONS, ofs);
-	perf_test_rdtscp(init_file, observations, &run_bw, N_RUNS, N_ITERATIONS, ofs);
+	 *  This is how we would get initialization parameters + observations from file
+		std::string init_file { "init_params.txt" };
+		std::string obs_file { "observations.txt" };
+		perf_test_chrono(init_file, obs_file, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
+		perf_test_rdtscp(init_file, obs_file, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
 	*/
 
-	/* print all benchmarking results to stdout */
-	//perf_test_chrono(init_file, observations, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
-	//perf_test_rdtscp(init_file, observations, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
+	int n_states = 5;
+	int n_emissions = 3;
+
+	// Measurements regarding the C++ baseline implementation
+	perf_test_rdtscp("Baseline implementation", &baum_welch,
+			n_states, n_emissions, N_RUNS, N_ITERATIONS, std::cout);
+	perf_test_chrono("Baseline implementation", &baum_welch,
+			n_states, n_emissions, N_RUNS, N_ITERATIONS, std::cout);
+
+	// Measurements regarding the C-like implementation
+	perf_test_rdtscp("Basic opts", &run_bw, n_states, n_emissions, N_RUNS, N_ITERATIONS, std::cout);
+	perf_test_chrono("Basic opts", &run_bw, n_states, n_emissions, N_RUNS, N_ITERATIONS, std::cout);
+
 }

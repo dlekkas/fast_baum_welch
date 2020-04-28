@@ -58,6 +58,10 @@ class HMM {
 
 		Matrix_v emission;
 
+	private:
+
+		void alloc_mem();
+
 };
 
 

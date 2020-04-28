@@ -53,6 +53,12 @@ void HMM::InitParamsRandom() {
 		transition.emplace_back(symmetric_dirichlet_sample(M));
 		emission.emplace_back(symmetric_dirichlet_sample(N));
 	}
+
+	alloc_mem();
+	for (size_t i = 0; i < transition.size(); i++) {
+		std::copy(transition[i].begin(), transition[i].end(), A[i]);
+		std::copy(emission[i].begin(), emission[i].end(), B[i]);
+	}
 }
 
 
@@ -61,6 +67,22 @@ void HMM::InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
 	transition = trans;
 	emission = emis;
 	pi = init_prob;
+
+	alloc_mem();
+	for (size_t i = 0; i < trans.size(); i++) {
+		std::copy(transition[i].begin(), transition[i].end(), A[i]);
+		std::copy(emission[i].begin(), emission[i].end(), B[i]);
+	}
+}
+
+
+void HMM::alloc_mem() {
+	A = new double*[M];
+	B = new double*[M];
+	for (auto i = 0; i < M; i++) {
+		A[i] = new double[M];
+		B[i] = new double[N];
+	}
 }
 
 

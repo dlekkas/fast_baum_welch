@@ -5,13 +5,13 @@ SRCDIR = src
 INCLUDEDIR = include
 CC = /usr/bin/g++
 
-CFLAGS = -c -std=c++17 -Wall -O3 -DDEBUG
+CFLAGS = -c -std=c++17 -Wall -O3
 
 DBGFLAGS = -g -DDEBUG
 
 
-all: $(OUTDIR)/baum_welch $(OUTDIR)/baum_welch_basic_opts $(OUTDIR)/baum_welch_baseline
-#all: $(OUTDIR)/baum_welch_baseline
+all: $(OUTDIR)/baum_welch $(OUTDIR)/baum_welch_basic_opts
+
 
 $(OUTDIR)/baum_welch: $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
 	$(CC) $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
@@ -19,9 +19,6 @@ $(OUTDIR)/baum_welch: $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hm
 $(OUTDIR)/baum_welch_basic_opts: $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw_basic_opts.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
 	$(CC) $(OBJDIR)/bw_basic_opts.o $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
 
-
-$(OUTDIR)/baum_welch_baseline: $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o
-	$(CC) $(OBJDIR)/baum_baseline_impl.o $(OBJDIR)/bw.o $(OBJDIR)/hmm.o $(OBJDIR)/test.o $(OBJDIR)/benchmark.o $(OBJDIR)/generator.o -o $@
 
 $(OBJDIR)/test.o: $(SRCDIR)/test.cc $(INCLUDEDIR)/bw.h
 	$(CC) -o $@ $(CFLAGS) $(SRCDIR)/test.cc
