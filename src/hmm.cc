@@ -77,13 +77,42 @@ void HMM::InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
 
 
 void HMM::alloc_mem() {
-	A = new double*[M];
-	B = new double*[M];
 	for (auto i = 0; i < M; i++) {
 		A[i] = new double[M];
 		B[i] = new double[N];
 	}
 }
+
+
+HMM::HMM(int states, int emissions):
+	M(states),
+	N(emissions),
+	A(new double*[states]),
+	B(new double*[states])
+{
+	InitParamsRandom();
+}
+
+HMM::HMM(const std::string& input_file):
+	M(0), N(0), A(nullptr), B(nullptr) {
+	InitParamsFromFile(input_file);
+}
+
+
+HMM::HMM(const HMM& hmm):
+	M(hmm.M),
+	N(hmm.N),
+	pi(hmm.pi),
+	A(new double*[hmm.M]),
+	B(new double*[hmm.M]),
+	transition(hmm.transition),
+	emission(hmm.emission)
+{
+	alloc_mem();
+	std::copy(hmm.A, hmm.A + (M*M), A);
+	std::copy(hmm.B, hmm.B + (M*N), B);
+}
+
 
 
 HMM::~HMM() {

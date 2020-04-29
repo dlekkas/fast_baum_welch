@@ -16,27 +16,21 @@ class HMM {
 
 	public:
 
-		HMM(int states, int emissions):
-			M(states),
-			N(emissions),
-			A(nullptr),
-			B(nullptr)
-		{ }
+		HMM(int states, int emissions);
 
-		HMM(const std::string& input_file):
-			A(nullptr), B(nullptr) {
-			InitParamsFromFile(input_file);
-		}
+		HMM(const HMM& hmm);
+
+		HMM(const std::string& input_file);
 
 		~HMM();
 
-		void InitParamsFromFile(const std::string& input_file);
-
-
-		void InitParamsRandom();
 
 		void InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
 				const std::vector<double>& init_prob);
+
+		void InitParamsFromFile(const std::string& input_file);
+
+		void InitParamsRandom();
 
 
         // number of states
