@@ -41,10 +41,10 @@ int main(int argc, char** argv) {
 		std::copy(model_base.emission[i].begin(), model_base.emission[i].end(), model_base.B[i]);
 	}
 
-  for (int j = 0; j < 1; j++) { // BE CAREFUL! Only one function for the moment, we compare the basic with itself!
+    for (int j = 0; j < 1; j++) { // BE CAREFUL! Only one function for the moment, we compare the basic with itself!
 
 		HMM model(model_old);
-  	//comp_func f = userFuncs[i];
+  	    //comp_func f = userFuncs[i];
 		/*
 		baum_welch(model.transition, model.emission, model.pi, observations);
 		for (size_t i = 0; i < model.transition.size(); i++) {
@@ -55,13 +55,13 @@ int main(int argc, char** argv) {
 		run_bw(model.M, model.N, observations.size(), observations.data(), model.pi.data(), model.A, model.B);
 		double error = compute_error(model_base.A, model_base.B, model_base.pi.data(), model.A, model.B, model.pi.data(), n_states, n_emissions);
 
-    if (error > ERROR_BOUND) {
-      std::cout << error << std::endl;
-      //cout << "ERROR!!!!  the results for the " << i+1 << "th function are different to the previous" << std::endl;
+        if (error > ERROR_BOUND) {
+            std::cout << error << std::endl;
+            //cout << "ERROR!!!!  the results for the " << i+1 << "th function are different to the previous" << std::endl;
 			std::cout << "ERROR!!! The results of given function are different to basic implementation" << std::endl;
-      return 1;
+            return 1;
+        }
     }
-  }
   // Add Garbage COllector
 
   //END OF VALIDATION PART
