@@ -67,7 +67,7 @@ void perf_test_rdtscp(const std::string& tag, compute_func baum_welch,
 		std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
 
 		HMM model(M, N);
-		model.InitParamsRandom();
+		//model.InitParamsRandom();
 
 		uint64_t start = start_tsc();
 		for (auto j = 0; j < n_runs; j++) {
@@ -107,7 +107,7 @@ void perf_test_rdtscp(const std::string& tag, compute_func2 baum_welch,
 		std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
 
 		HMM model(M, N);
-		model.InitParamsRandom();
+		//model.InitParamsRandom();
 
 		uint64_t start = start_tsc();
 		for (auto j = 0; j < n_runs; j++) {
@@ -189,7 +189,7 @@ void perf_test_chrono(const std::string& tag, compute_func baum_welch,
 		std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
 
 		HMM model(M, N);
-		model.InitParamsRandom();
+		//model.InitParamsRandom();
 
 		auto begin = std::chrono::steady_clock::now();
 		for (auto j = 0; j < n_runs; j++) {
@@ -230,7 +230,7 @@ void perf_test_chrono(const std::string& tag, compute_func2 baum_welch,
 		std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
 
 		HMM model(M, N);
-		model.InitParamsRandom();
+		//model.InitParamsRandom();
 
 		auto begin = std::chrono::steady_clock::now();
 		for (auto j = 0; j < n_runs; j++) {
