@@ -178,7 +178,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
 
     bool has_converged = false;
     int iterations = 0;
-    while (iterations < 1) {
+    while (iterations < 5) { // SET TO MAX ITER
         forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence);
         has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence);
         iterations++;

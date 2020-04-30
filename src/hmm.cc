@@ -109,8 +109,12 @@ HMM::HMM(const HMM& hmm):
 	emission(hmm.emission)
 {
 	alloc_mem();
-	std::copy(hmm.A, hmm.A + (M*M), A);
-	std::copy(hmm.B, hmm.B + (M*N), B);
+	//std::copy(hmm.A, hmm.A + (M*M), A); // DID NOT WORK
+  //std::copy(hmm.B, hmm.B + (M*N), B);
+  for (size_t i = 0; i < transition.size(); i++) {
+		std::copy(transition[i].begin(), transition[i].end(), A[i]);
+		std::copy(emission[i].begin(), emission[i].end(), B[i]);
+	}
 }
 
 
