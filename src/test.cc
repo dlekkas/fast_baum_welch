@@ -4,7 +4,7 @@
 #include <iterator>
 
 #include "../include/bw.h"
-#include "../include/benchmark.h"
+#include "../include/infra.h"
 #include "../include/hmm.h"
 #include "../include/validation.h"
 #include "../include/generator.h"
@@ -24,8 +24,8 @@ int main(int argc, char** argv) {
 		perf_test_rdtscp(init_file, obs_file, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
 	*/
 
-	int n_states = 5;
-	int n_emissions = 3;
+	int n_states = 100;
+	int n_emissions = 100;
 
 	//VALIDATION PART - MANOLIS
 

@@ -1,34 +1,44 @@
 #ifndef BENCHMARK_H
 #define BENCHMARK_H
 
-#include <iostream>
+#include <vector>
+#include <string>
 
-#include "hmm.h"
+struct Statistics {
+	double mean;
+	double median;
+	double min_v;
+	double max_v;
+	double variance;
+};
 
-using compute_func = void (*)(int, int, int, int*, double*, double**, double**);
 
-using compute_func2 = void (*)(Matrix_v&, Matrix_v&, std::vector<double>&,
-		const std::vector<int>&);
+class Benchmark {
 
-void perf_test_rdtscp(const std::string& tag, const std::string& init_file,
-		const std::string& obs_file, compute_func baum_welch, int n_runs,
-		int n_iterations, std::ostream& os);
+	public:
 
-void perf_test_rdtscp(const std::string& tag, compute_func baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout);
+		int N; int M; int O;
 
-void perf_test_rdtscp(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout);
+		std::vector<double> measurements;
+		std::string impl_tag;
+		std::string metric_tag;
 
-void perf_test_chrono(const std::string& tag, const std::string& init_file,
-		const std::string& obs_file, compute_func2 baum_welch, int n_runs,
-		int n_iterations, std::ostream& os);
+		Statistics stats;
 
-void perf_test_chrono(const std::string& tag, compute_func baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout);
+		Benchmark(const std::vector<double>& values, const std::string& i_tag,
+				const std::string& m_tag, int n, int m, int o);
 
-void perf_test_chrono(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout);
+		Benchmark(const Benchmark& bench) = default;
+
+		~Benchmark() = default;
+
+		Statistics CalculateStatistics();
+
+		void BeautyPrint(std::ostream& os);
+
+};
+
+
 
 
 #endif
