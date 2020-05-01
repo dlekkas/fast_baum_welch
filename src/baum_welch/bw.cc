@@ -7,11 +7,13 @@
 #include "../include/bw.h"
 
 double** g;
+double*** chsi;
 
 int it=0;
 
 void forward_backward(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq) {
+
 
     int i, j, t;
     double sc_factors[T];
@@ -71,7 +73,6 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
             g[i][t] = (forward[i][t] * backward[i][t])/sum;
     }
 
-    double chsi[M][M][T];
     for (t=0; t<T-1; t++) {
         double sum = 0.0;
         for (k=0; k<M; k++) {
@@ -163,6 +164,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
 
 void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B) {
 
+
     double** forward = (double**)malloc(M * sizeof(double*));
     for (int i=0; i<M; i++)
         forward[i] = (double*)calloc(T, sizeof(double));
@@ -175,10 +177,16 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
     for (int i=0; i<M; i++)
         g[i] = (double*)calloc(T, sizeof(double));
 
+    chsi = (double***)malloc(M * sizeof(double**));
+    for (int i=0; i<M; i++) {
+        chsi[i] = (double**)malloc(M * sizeof(double*));
+        for (int j=0; j<M; j++)
+            chsi[i][j] = (double*)calloc(T, sizeof(double));
+    }
 
     bool has_converged = false;
     int iterations = 0;
-    while (iterations < 5) { // SET TO MAX ITER
+    while (iterations < MAX_ITERATIONS) { // SET TO MAX ITER
         forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence);
         has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence);
         iterations++;

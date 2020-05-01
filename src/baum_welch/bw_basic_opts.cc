@@ -8,6 +8,7 @@
 
 using namespace std;
 double** g;
+double*** chsi;
 
 int it=0;
 
@@ -75,7 +76,6 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
             g[i][t] = (forward[i][t] * backward[i][t])/sc_factors[t];
     }
 
-    double chsi[M][M][T];
     //double den;
     for (t=0; t<T-1; t++) {
         // den = denom[t] / sc_factors[t];
@@ -161,6 +161,12 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
     for (int i=0; i<M; i++)
         g[i] = (double*)calloc(T, sizeof(double));
 
+    chsi = (double***)malloc(M * sizeof(double**));
+    for (int i=0; i<M; i++) {
+        chsi[i] = (double**)malloc(M * sizeof(double*));
+        for (int j=0; j<M; j++)
+            chsi[i][j] = (double*)calloc(T, sizeof(double));
+    }
 
     bool has_converged = false;
     int iterations = 0;
