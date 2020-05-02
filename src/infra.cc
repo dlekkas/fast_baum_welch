@@ -23,18 +23,28 @@ void perf_test_rdtscp(const std::string& impl_tag, const std::string& init_file,
 			  std::back_inserter(observations));
 
 	init_tsc();
-
 	HMM base_model(init_file);
 	for (auto i = 0; i < n_iter; i++) {
+
 		HMM model(base_model);
+
+		double** forward = allocate_2d(model.M, observations.size());
+		double** backward = allocate_2d(model.M, observations.size());
+		double** g = allocate_2d(model.M, observations.size());
+		double*** chsi = allocate_3d(model.M, model.M, observations.size());
 
 		uint64_t start = start_tsc();
 		for (auto j = 0; j < n_runs; j++) {
 			baum_welch(model.M, model.N, observations.size(), observations.data(), \
-				   model.pi.data(), model.A, model.B);
+				   model.pi.data(), model.A, model.B, forward, backward, g, chsi);
 		}
 		uint64_t end = stop_tsc();
 		uint64_t cycles = (end - start) / (double) n_runs;
+
+		forward = free_2d(forward, model.M, observations.size());
+		backward = free_2d(backward, model.M, observations.size());
+		g = free_2d(g, model.M, observations.size());
+		chsi = free_3d(chsi, model.M, model.M, observations.size());
 
 		cycles_list.emplace_back(cycles);
 	}
@@ -57,14 +67,22 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 	for (auto i = 0; i < n_iter; i++) {
 
 		HMM model(base_model);
+		double** forward = allocate_2d(model.M, observations.size());
+		double** backward = allocate_2d(model.M, observations.size());
+		double** g = allocate_2d(model.M, observations.size());
+		double*** chsi = allocate_3d(model.M, model.M, observations.size());
 
 		uint64_t start = start_tsc();
 		for (auto j = 0; j < n_runs; j++) {
 			baum_welch(model.M, model.N, observations.size(), observations.data(), \
-				   model.pi.data(), model.A, model.B);
+				   model.pi.data(), model.A, model.B, forward, backward, g, chsi);
 		}
 		uint64_t end = stop_tsc();
 		uint64_t cycles = (end - start) / (double) n_runs;
+		forward = free_2d(forward, model.M, observations.size());
+		backward = free_2d(backward, model.M, observations.size());
+		g = free_2d(g, model.M, observations.size());
+		chsi = free_3d(chsi, model.M, model.M, observations.size());
 
 		cycles_list.emplace_back(cycles);
 	}
@@ -119,14 +137,24 @@ void perf_test_chrono(const std::string& impl_tag, const std::string& init_file,
 	for (auto i = 0; i < n_iter; i++) {
 		HMM model(base_model);
 
+		double** forward = allocate_2d(model.M, observations.size());
+		double** backward = allocate_2d(model.M, observations.size());
+		double** g = allocate_2d(model.M, observations.size());
+		double*** chsi = allocate_3d(model.M, model.M, observations.size());
+
 		auto begin = std::chrono::steady_clock::now();
 		for (auto j = 0; j < n_runs; j++) {
 			baum_welch(model.M, model.N, observations.size(), observations.data(), \
-				   model.pi.data(), model.A, model.B);
+				   model.pi.data(), model.A, model.B, forward, backward, g, chsi);
 		}
 		auto end = std::chrono::steady_clock::now();
 		auto duration_us = std::chrono::duration_cast
 			<std::chrono::milliseconds>(end - begin).count() / n_runs;
+
+		forward = free_2d(forward, model.M, observations.size());
+		backward = free_2d(backward, model.M, observations.size());
+		g = free_2d(g, model.M, observations.size());
+		chsi = free_3d(chsi, model.M, model.M, observations.size());
 
 		time_list.emplace_back(duration_us);
 	}
@@ -146,14 +174,24 @@ void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
 	for (auto i = 0; i < n_iter; i++) {
 		HMM model(base_model);
 
+		double** forward = allocate_2d(model.M, observations.size());
+		double** backward = allocate_2d(model.M, observations.size());
+		double** g = allocate_2d(model.M, observations.size());
+		double*** chsi = allocate_3d(model.M, model.M, observations.size());
+
 		auto begin = std::chrono::steady_clock::now();
 		for (auto j = 0; j < n_runs; j++) {
 			baum_welch(model.M, model.N, observations.size(), observations.data(), \
-				   model.pi.data(), model.A, model.B);
+				   model.pi.data(), model.A, model.B, forward, backward, g, chsi);
 		}
 		auto end = std::chrono::steady_clock::now();
 		auto duration_us = std::chrono::duration_cast
 			<std::chrono::milliseconds>(end - begin).count() / n_runs;
+
+		forward = free_2d(forward, model.M, observations.size());
+		backward = free_2d(backward, model.M, observations.size());
+		g = free_2d(g, model.M, observations.size());
+		chsi = free_3d(chsi, model.M, model.M, observations.size());
 
 		time_list.emplace_back(duration_us);
 	}
@@ -190,4 +228,42 @@ void perf_test_chrono(const std::string& impl_tag, compute_func2 baum_welch,
 	Benchmark bench(time_list, impl_tag, "time (ms)", base_model.N, base_model.M, observations.size());
 	bench.BeautyPrint(xout);
 
+}
+
+double** allocate_2d(int M, int T) {
+
+	double** ar = (double**)malloc(M * sizeof(double*));
+    for (int i=0; i<M; i++)
+        ar[i] = (double*)calloc(T, sizeof(double));
+	return ar;
+}
+
+double*** allocate_3d(int M, int K, int T) {
+
+	double*** ar = (double***)malloc(M * sizeof(double**));
+    for (int i=0; i<M; i++) {
+        ar[i] = (double**)malloc(K * sizeof(double*));
+        for (int j=0; j<K; j++)
+	        ar[i][j] = (double*)calloc(T, sizeof(double));
+	}
+	return ar;
+}
+
+double** free_2d(double** ar, int M, int T) {
+
+    for (int i=0; i<M; i++)
+        free(ar[i]);
+	free(ar);
+	return NULL;
+}
+
+double*** free_3d(double*** ar, int M, int K, int T) {
+
+    for (int i=0; i<M; i++) {
+		for (int j=0; j<K; j++)
+			free(ar[i][j]);
+		free(ar[i]);
+	}
+	free(ar);
+	return NULL;
 }

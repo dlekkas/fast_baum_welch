@@ -6,10 +6,6 @@
 #include <assert.h>
 #include "../include/bw.h"
 
-using namespace std;
-double** g;
-double*** chsi;
-
 int it=0;
 
 void forward_backward(double** forward, double** backward, int M, int N, int T,
@@ -58,7 +54,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 
 
 bool update_and_check(double** forward, double** backward, int M, int N, int T,
-		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
+		double* pi, double** A, double** B, int* observation_seq, double *sc_factors, double** g, double*** chsi) {
 
     int i, j, t, vk;
     bool converged = true;
@@ -147,26 +143,8 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     return converged;
 }
 
-void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B) {
-
-    double** forward = (double**)malloc(M * sizeof(double*));
-    for (int i=0; i<M; i++)
-        forward[i] = (double*)calloc(T, sizeof(double));
-
-    double** backward = (double**)malloc(M * sizeof(double*));
-    for (int i=0; i<M; i++)
-        backward[i] = (double*)calloc(T, sizeof(double));
-
-    g = (double**)malloc(M * sizeof(double*));
-    for (int i=0; i<M; i++)
-        g[i] = (double*)calloc(T, sizeof(double));
-
-    chsi = (double***)malloc(M * sizeof(double**));
-    for (int i=0; i<M; i++) {
-        chsi[i] = (double**)malloc(M * sizeof(double*));
-        for (int j=0; j<M; j++)
-            chsi[i][j] = (double*)calloc(T, sizeof(double));
-    }
+void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
+        double** forward, double** backward, double** g, double*** chsi) {
 
     bool has_converged = false;
     int iterations = 0;
@@ -174,7 +152,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
 
     while (iterations < MAX_ITERATIONS) {
         forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors);
-        has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors);
+        has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors, g, chsi);
         iterations++;
         it++;
     }

@@ -5,7 +5,7 @@
 
 #include "hmm.h"
 
-using compute_func = void (*)(int, int, int, int*, double*, double**, double**);
+using compute_func = void (*)(int, int, int, int*, double*, double**, double**, double**, double**, double**, double***);
 
 using compute_func2 = void (*)(Matrix_v&, Matrix_v&, std::vector<double>&,
 		const std::vector<int>&);
@@ -30,5 +30,14 @@ void perf_test_chrono(const std::string& tag, compute_func baum_welch,
 void perf_test_chrono(const std::string& tag, compute_func2 baum_welch,
 		int M, int N, int n_runs, int n_iter, std::ostream& xout);
 
+
+
+/* helper functions to preallocate/free memory needed for baum-welch */
+
+double** allocate_2d(int M, int T);
+double*** allocate_3d(int M, int K, int T);
+
+double** free_2d(double** ar, int M, int T);
+double*** free_3d(double*** ar, int M, int K, int T);
 
 #endif

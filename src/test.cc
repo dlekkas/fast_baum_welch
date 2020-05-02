@@ -13,7 +13,6 @@
 #define N_RUNS 1
 #define SEQ_LEN 50
 
-
 int main(int argc, char** argv) {
 
 	/*
@@ -52,7 +51,12 @@ int main(int argc, char** argv) {
 			std::copy(model.emission[i].begin(), model.emission[i].end(), model.B[i]);
 		}
 		*/
-		run_bw(model.M, model.N, observations.size(), observations.data(), model.pi.data(), model.A, model.B);
+		double** forward = allocate_2d(model.M, observations.size());
+		double** backward = allocate_2d(model.M, observations.size());
+		double** g = allocate_2d(model.M, observations.size());
+		double*** chsi = allocate_3d(model.M, model.M, observations.size());
+
+		run_bw(model.M, model.N, observations.size(), observations.data(), model.pi.data(), model.A, model.B, forward, backward, g, chsi);
 		double error = compute_error(model_base.A, model_base.B, model_base.pi.data(), model.A, model.B, model.pi.data(), n_states, n_emissions);
 
         if (error > ERROR_BOUND) {
@@ -61,6 +65,7 @@ int main(int argc, char** argv) {
 			std::cout << "ERROR!!! The results of given function are different to basic implementation" << std::endl;
             return 1;
         }
+
     }
   // Add Garbage COllector
 

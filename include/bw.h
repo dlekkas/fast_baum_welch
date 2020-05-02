@@ -10,9 +10,10 @@ void forward_backward(double** forward, double** backward, int M, int N,
 		int T, double* pi, double** A, double** B, int* observation_seq);
 
 bool update_and_check(double** forward, double** backward, int M, int N,
-		int T, double* pi, double** A, double** B, int* observation_seq);
+		int T, double* pi, double** A, double** B, int* observation_seq, double** g, double*** chsi);
 
-void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B);
+void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
+		double** forward, double** backward, double** g, double*** chsi);
 
 void baum_welch(Matrix_v& transition, Matrix_v& emission, std::vector<double>& init_prob,
 		const std::vector<int>& observations);
