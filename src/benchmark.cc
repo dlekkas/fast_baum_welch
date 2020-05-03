@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <numeric>
 #include <iostream>
+#include <fstream>
 
 #include "benchmark.h"
+
+using namespace std;
 
 
 Statistics Benchmark::CalculateStatistics() {
@@ -26,20 +29,30 @@ Statistics Benchmark::CalculateStatistics() {
 }
 
 
-void Benchmark::BeautyPrint(std::ostream& os) {
+void Benchmark::BeautyPrint(ostream& os) {
 
-	os << "--------------- " << impl_tag << "--------------- " << std::endl;
-	os << "[" << metric_tag << "] (MEAN): "<< stats.mean << std::endl;
-	os << "[" << metric_tag << "] (MEDIAN): "<< stats.median << std::endl;
-	os << "[" << metric_tag << "] (VARIANCE): "<< stats.median << std::endl;
-	os << "[" << metric_tag << "] (MIN): " << stats.min_v << std::endl;
-	os << "[" << metric_tag << "] (MIN): " << stats.max_v << std::endl;
+	os << "--------------- " << impl_tag << "--------------- " << endl;
+	os << "[" << metric_tag << "] (MEAN): "<< stats.mean << endl;
+	os << "[" << metric_tag << "] (MEDIAN): "<< stats.median << endl;
+	os << "[" << metric_tag << "] (VARIANCE): "<< stats.median << endl;
+	os << "[" << metric_tag << "] (MIN): " << stats.min_v << endl;
+	os << "[" << metric_tag << "] (MIN): " << stats.max_v << endl;
 
 }
 
+void Benchmark::CSVPrint(const string& file) {
+	ofstream ofs(file, ios_base::app);
+	ofs << impl_tag << "," << metric_tag << "," << N << ","
+		<< M << "," << O << "," << stats.mean << endl;
+}
 
-Benchmark::Benchmark(const std::vector<double>& values, const std::string& i_tag,
-		const std::string& m_tag, int n, int m, int o):
+void Benchmark::CompactPrint(ostream& os) {
+	os << impl_tag << ": " << stats.median << " " << metric_tag << endl;
+}
+
+
+Benchmark::Benchmark(const vector<double>& values, const string& i_tag,
+		const string& m_tag, int n, int m, int o):
 	N(n), M(m), O(o),
 	measurements(values),
 	impl_tag(i_tag),
@@ -47,3 +60,5 @@ Benchmark::Benchmark(const std::vector<double>& values, const std::string& i_tag
 {
 	CalculateStatistics();
 }
+
+

@@ -36,6 +36,11 @@ class Benchmark {
 
 		void BeautyPrint(std::ostream& os);
 
+		void CompactPrint(std::ostream& os);
+
+		void CSVPrint(const std::string& file);
+
+
 };
 
 

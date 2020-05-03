@@ -9,56 +9,11 @@
 #include "../include/benchmark.h"
 #include "../include/infra.h"
 
-#define SEQ_LEN 50
-
-
-void perf_test_rdtscp(const std::string& impl_tag, const std::string& init_file,
-		const std::string& obs_file, compute_func baum_welch, int n_runs,
-		int n_iter, std::ostream& xout) {
-
-	std::vector<double> cycles_list;
-	std::vector<int> observations;
-	std::ifstream ifs(obs_file);
-	std::copy(std::istream_iterator<int>(ifs), std::istream_iterator<int>(),
-			  std::back_inserter(observations));
-
-	init_tsc();
-	HMM base_model(init_file);
-	for (auto i = 0; i < n_iter; i++) {
-
-		HMM model(base_model);
-
-		double** forward = allocate_2d(model.M, observations.size());
-		double** backward = allocate_2d(model.M, observations.size());
-		double** g = allocate_2d(model.M, observations.size());
-		double*** chsi = allocate_3d(model.M, model.M, observations.size());
-
-		uint64_t start = start_tsc();
-		for (auto j = 0; j < n_runs; j++) {
-			baum_welch(model.M, model.N, observations.size(), observations.data(), \
-				   model.pi.data(), model.A, model.B, forward, backward, g, chsi);
-		}
-		uint64_t end = stop_tsc();
-		uint64_t cycles = (end - start) / (double) n_runs;
-
-		forward = free_2d(forward, model.M, observations.size());
-		backward = free_2d(backward, model.M, observations.size());
-		g = free_2d(g, model.M, observations.size());
-		chsi = free_3d(chsi, model.M, model.M, observations.size());
-
-		cycles_list.emplace_back(cycles);
-	}
-
-	Benchmark bench(cycles_list, impl_tag, "cycles", base_model.N, base_model.M, observations.size());
-	bench.BeautyPrint(xout);
-
-}
-
 
 void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print) {
 
-	std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
+	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> cycles_list;
 
 	init_tsc();
@@ -89,14 +44,18 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 
 
 	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size());
-	bench.BeautyPrint(xout);
+	bench.CSVPrint("results_cycles.txt");
+
+	if (print) {
+		bench.CompactPrint(xout);
+	}
 }
 
 
 void perf_test_rdtscp(const std::string& impl_tag, compute_func2 baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print) {
 
-	std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
+	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> cycles_list;
 
 	init_tsc();
@@ -117,57 +76,21 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func2 baum_welch,
 	}
 
 	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size());
-	bench.BeautyPrint(xout);
+	bench.CSVPrint("results_cycles.txt");
 
-}
-
-
-void perf_test_chrono(const std::string& impl_tag, const std::string& init_file,
-		const std::string& obs_file, compute_func baum_welch, int n_runs,
-		int n_iter, std::ostream& xout) {
-
-	std::vector<double> time_list;
-
-	std::vector<int> observations;
-	std::ifstream ifs(obs_file);
-	std::copy(std::istream_iterator<int>(ifs), std::istream_iterator<int>(),
-			  std::back_inserter(observations));
-
-	HMM base_model(init_file);
-	for (auto i = 0; i < n_iter; i++) {
-		HMM model(base_model);
-
-		double** forward = allocate_2d(model.M, observations.size());
-		double** backward = allocate_2d(model.M, observations.size());
-		double** g = allocate_2d(model.M, observations.size());
-		double*** chsi = allocate_3d(model.M, model.M, observations.size());
-
-		auto begin = std::chrono::steady_clock::now();
-		for (auto j = 0; j < n_runs; j++) {
-			baum_welch(model.M, model.N, observations.size(), observations.data(), \
-				   model.pi.data(), model.A, model.B, forward, backward, g, chsi);
-		}
-		auto end = std::chrono::steady_clock::now();
-		auto duration_us = std::chrono::duration_cast
-			<std::chrono::milliseconds>(end - begin).count() / n_runs;
-
-		forward = free_2d(forward, model.M, observations.size());
-		backward = free_2d(backward, model.M, observations.size());
-		g = free_2d(g, model.M, observations.size());
-		chsi = free_3d(chsi, model.M, model.M, observations.size());
-
-		time_list.emplace_back(duration_us);
+	if (print) {
+		bench.CompactPrint(xout);
 	}
 
-	Benchmark bench(time_list, impl_tag, "time (ms)", base_model.N, base_model.M, observations.size());
-	bench.BeautyPrint(xout);
 }
+
+
 
 
 void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print) {
 
-	std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
+	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> time_list;
 
 	HMM base_model(M, N);
@@ -198,16 +121,19 @@ void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
 
 
 
-	Benchmark bench(time_list, impl_tag, "time (ms)", base_model.N, base_model.M, observations.size());
-	bench.BeautyPrint(xout);
+	Benchmark bench(time_list, impl_tag, "msec", base_model.N, base_model.M, observations.size());
+	bench.CSVPrint("results_time.txt");
 
+	if (print) {
+		bench.CompactPrint(xout);
+	}
 }
 
 
 void perf_test_chrono(const std::string& impl_tag, compute_func2 baum_welch,
-		int M, int N, int n_runs, int n_iter, std::ostream& xout) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print) {
 
-	std::vector<int> observations = uniform_emission_sample(SEQ_LEN, N);
+	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> time_list;
 
 	HMM base_model(M, N);
@@ -225,9 +151,12 @@ void perf_test_chrono(const std::string& impl_tag, compute_func2 baum_welch,
 		time_list.emplace_back(duration_us);
 	}
 
-	Benchmark bench(time_list, impl_tag, "time (ms)", base_model.N, base_model.M, observations.size());
-	bench.BeautyPrint(xout);
+	Benchmark bench(time_list, impl_tag, "msec", base_model.N, base_model.M, observations.size());
+	bench.CSVPrint("results_time.txt");
 
+	if (print) {
+		bench.CompactPrint(xout);
+	}
 }
 
 double** allocate_2d(int M, int T) {
