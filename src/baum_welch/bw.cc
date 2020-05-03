@@ -4,6 +4,7 @@
 */
 #include <iostream>
 #include <assert.h>
+#include <math.h>
 #include "../include/bw.h"
 
 int it=0;
@@ -41,7 +42,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
     }
 
     for (i=0; i<M; i++)
-        backward[i][T-1] = 1.0*sc_factors[T-1];
+        backward[i][T-1] = sc_factors[T-1];
 
     for (t=T-2; t>=0; t--) {
         for (i=0; i<M; i++) {
@@ -85,14 +86,20 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     }
 
 
-    double new_pi[M];
-    double new_A[M][M];
-    double new_B[M][N];
+    double new_pi;
+    double new_A;
+    double new_B;
 
     // estimate new initial vector, transition and emission matrixes
-
-    for (i=0; i<M; i++)
-        new_pi[i] = g[i][0];
+    double diff;
+    for (i=0; i<M; i++) {
+        new_pi = g[i][0];
+        diff = fabs(pi[i] - new_pi); // if we use mse the number of flops will change
+        if (diff > THRESHOLD) {
+            converged = false;
+        }
+        pi[i] = new_pi;
+    }
 
     for (i=0; i<M; i++) {
         double sum = 0.0;
@@ -102,7 +109,14 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
             double sum2 = 0.0;
             for (t=0; t<T-1; t++)
                 sum2 += chsi[i][j][t];
-            new_A[i][j] = sum2/sum;
+            new_A = sum2/sum;
+
+            diff = fabs(A[i][j] - new_A);
+            if (diff > THRESHOLD) {
+                converged = false;
+            }
+            A[i][j] = new_A;
+
         }
     }
 
@@ -116,45 +130,16 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
                 if (observation_seq[t] == vk)
                     occurrences += g[i][t];
             }
-            new_B[i][vk] = occurrences/sum;
+            new_B = occurrences/sum;
+
+            diff = fabs(B[i][vk] - new_B);
+            if (diff > THRESHOLD) {
+                converged = false;
+            }
+
+            B[i][vk] = new_B;
         }
     }
-
-    // compute difference from the old values
-
-    double diff;
-    double max_pi_diff = 0.0;
-    for (i=0; i<M; i++) {
-        diff = std::abs(pi[i] - new_pi[i]);
-        if (diff > max_pi_diff)
-            max_pi_diff = diff;
-
-        pi[i] = new_pi[i];
-    }
-
-    double max_A_diff = 0.0;
-    for (i=0; i<M; i++) {
-        for (j=0; j<M; j++) {
-            diff = std::abs(A[i][j] - new_A[i][j]);
-            if (diff > max_A_diff)
-                max_A_diff = diff;
-
-            A[i][j] = new_A[i][j];
-        }
-    }
-
-    double max_B_diff = 0.0;
-    for (i=0; i<M; i++) {
-        for (j=0; j<N; j++) {
-            diff = std::abs(B[i][j] - new_B[i][j]);
-            if (diff > max_B_diff)
-                max_B_diff = diff;
-
-            B[i][j] = new_B[i][j];
-        }
-    }
-
-    converged = (max_pi_diff < THRESHOLD) && (max_A_diff < THRESHOLD) && (max_B_diff < THRESHOLD);
 
     return converged;
 }

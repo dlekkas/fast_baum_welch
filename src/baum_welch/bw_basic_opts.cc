@@ -39,7 +39,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
     }
 
     for (i=0; i<M; i++)
-        backward[i][T-1] = 1.0*sc_factors[T-1];
+        backward[i][T-1] = sc_factors[T-1];
 
     for (t=T-2; t>=0; t--) {
         for (i=0; i<M; i++) {

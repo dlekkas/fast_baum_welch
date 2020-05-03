@@ -235,13 +235,13 @@ double** allocate_2d(int M, int T) {
 	double** ar = (double**)malloc(M * sizeof(double*));
     for (int i=0; i<M; i++)
         ar[i] = (double*)calloc(T, sizeof(double));
-	return ar;
+    return ar;
 }
 
 double*** allocate_3d(int M, int K, int T) {
 
 	double*** ar = (double***)malloc(M * sizeof(double**));
-    for (int i=0; i<M; i++) {
+	for (int i=0; i<M; i++) {
         ar[i] = (double**)malloc(K * sizeof(double*));
         for (int j=0; j<K; j++)
 	        ar[i][j] = (double*)calloc(T, sizeof(double));
@@ -253,7 +253,7 @@ double** free_2d(double** ar, int M, int T) {
 
     for (int i=0; i<M; i++)
         free(ar[i]);
-	free(ar);
+    free(ar);
 	return NULL;
 }
 
