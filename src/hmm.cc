@@ -76,6 +76,32 @@ void HMM::InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
 }
 
 
+
+bool HMM::IsSimilar(const HMM& hmm, const double eps) {
+
+	double max_err = 0.0;
+	for (auto i = 0; i < M; i++) {
+		max_err = std::max(max_err, std::abs(pi[i] - hmm.pi[i]));
+	}
+
+	for (auto i = 0; i < M; i++) {
+		for (auto j = 0; j < M; j++) {
+			max_err = std::max(max_err, std::abs(A[i][j] - hmm.A[i][j]));
+		}
+	}
+
+	for (auto i = 0; i < M; i++) {
+		for (auto j = 0; j < N; j++) {
+			max_err = std::max(max_err, std::abs(B[i][j] - hmm.B[i][j]));
+		}
+	}
+
+	return max_err < eps;
+}
+
+
+
+
 void HMM::alloc_mem() {
 	for (auto i = 0; i < M; i++) {
 		A[i] = new double[M];

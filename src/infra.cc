@@ -8,6 +8,7 @@
 #include "../include/tsc_x86.h"
 #include "../include/benchmark.h"
 #include "../include/infra.h"
+#include "../include/bw.h"
 
 
 void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
@@ -167,6 +168,35 @@ void perf_test_chrono(const std::string& impl_tag, compute_func2 baum_welch,
 		bench.CompactPrint(xout);
 	}
 }
+
+
+bool IsValidImpl(compute_func impl) {
+	int n = 16, m = 32, o = 32;
+
+	HMM base_model(m, n);
+	HMM test_model(base_model);
+
+	std::vector<int> obs = uniform_emission_sample(o, n);
+
+	baum_welch(base_model.transition, base_model.emission, base_model.pi, obs);
+	for (auto i = 0; i < m; i++) {
+		std::copy(base_model.transition[i].begin(), base_model.transition[i].end(), base_model.A[i]);
+		std::copy(base_model.emission[i].begin(), base_model.emission[i].end(), base_model.B[i]);
+	}
+
+	double** fwd = allocate_2d(m, o);
+	double** bwd = allocate_2d(m, o);
+	double** g = allocate_2d(m, o);
+	double*** chsi = allocate_3d(m, m, o);
+	impl(m, n, o, obs.data(), test_model.pi.data(), test_model.A, test_model.B, fwd, bwd, g, chsi);
+
+	return test_model.IsSimilar(base_model);
+}
+
+
+
+
+
 
 double** allocate_2d(int M, int T) {
 

@@ -1,83 +1,39 @@
+#include <tuple>
 #include <vector>
 #include <iostream>
 
 #include "../include/bw.h"
 #include "../include/infra.h"
 #include "../include/hmm.h"
-#include "../include/validation.h"
 #include "../include/generator.h"
 
 #define N_ITERATIONS 10
 #define N_RUNS 1
-#define SEQ_LEN 64
+
+#define SEQ_LEN 128
+#define M 64
+#define N 64
 
 
-int main(int argc, char** argv) {
+using namespace std;
+using Implementation = tuple<string, compute_func>;
 
 
-	int n_states = 100;
-	int n_emissions = 100;
+int main() {
+
+	// entry: { <implementation-tag> <baum-welch-function> }
+	vector<Implementation> implementations {
+		{"C-like Baseline", &run_bw},
+		{"Basic Opts", &run_bw_basic_opts}
+	};
 
 
-	//VALIDATION PART - MANOLIS
-
-	std::vector<int> observations = uniform_emission_sample(SEQ_LEN, n_emissions);
-
-	HMM model_old(n_states, n_emissions);
-	HMM model_base(model_old);
-	// C++ like implementation as basic
-	baum_welch(model_base.transition, model_base.emission, model_base.pi, observations);
-
-	for (size_t i = 0; i < model_base.transition.size(); i++) {
-		std::copy(model_base.transition[i].begin(), model_base.transition[i].end(), model_base.A[i]);
-		std::copy(model_base.emission[i].begin(), model_base.emission[i].end(), model_base.B[i]);
-	}
-
-    for (int j = 0; j < 1; j++) { // BE CAREFUL! Only one function for the moment, we compare the basic with itself!
-
-		HMM model(model_old);
-  	    //comp_func f = userFuncs[i];
-		/*
-		baum_welch(model.transition, model.emission, model.pi, observations);
-		for (size_t i = 0; i < model.transition.size(); i++) {
-			std::copy(model.transition[i].begin(), model.transition[i].end(), model.A[i]);
-			std::copy(model.emission[i].begin(), model.emission[i].end(), model.B[i]);
+	for (const auto& [impl_tag, bw_func]: implementations) {
+		if (!IsValidImpl(bw_func)) {
+			cout << "[" << impl_tag << "] Invalid implementation!" << endl;
 		}
-		*/
-		double** forward = allocate_2d(model.M, observations.size());
-		double** backward = allocate_2d(model.M, observations.size());
-		double** g = allocate_2d(model.M, observations.size());
-		double*** chsi = allocate_3d(model.M, model.M, observations.size());
-
-		run_bw(model.M, model.N, observations.size(), observations.data(), model.pi.data(), model.A, model.B, forward, backward, g, chsi);
-		double error = compute_error(model_base.A, model_base.B, model_base.pi.data(), model.A, model.B, model.pi.data(), n_states, n_emissions);
-
-        if (error > ERROR_BOUND) {
-            std::cout << error << std::endl;
-            //cout << "ERROR!!!!  the results for the " << i+1 << "th function are different to the previous" << std::endl;
-			std::cout << "ERROR!!! The results of given function are different to basic implementation" << std::endl;
-            return 1;
-        }
-
-    }
-
-	// Measurements regarding the C++ baseline implementation
-	perf_test_rdtscp("C++ Baseline", &baum_welch, n_states, n_emissions, SEQ_LEN,
-			N_RUNS, N_ITERATIONS, std::cout);
-	perf_test_chrono("C++ Baseline", &baum_welch, n_states, n_emissions, SEQ_LEN,
-			N_RUNS, N_ITERATIONS, std::cout);
-
-	// Measurements regarding the C-like implementation
-	perf_test_rdtscp("C-like Baseline", &run_bw, n_states, n_emissions, SEQ_LEN,
-			N_RUNS, N_ITERATIONS, std::cout);
-	perf_test_chrono("C-like Baseline", &run_bw, n_states, n_emissions, SEQ_LEN,
-			N_RUNS, N_ITERATIONS, std::cout);
-
-	// Measurements for basic optimizations implementation
-	perf_test_rdtscp("Basic opts", &run_bw_basic_opts, n_states, n_emissions, SEQ_LEN,
-			N_RUNS, N_ITERATIONS, std::cout);
-	perf_test_chrono("Basic opts", &run_bw_basic_opts, n_states, n_emissions, SEQ_LEN,
-			N_RUNS, N_ITERATIONS, std::cout);
-
+		perf_test_rdtscp(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
+		perf_test_chrono(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
+	}
 
 }

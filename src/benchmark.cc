@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "benchmark.h"
+#include "bw.h"
 
 using namespace std;
 

@@ -32,6 +32,8 @@ class HMM {
 
 		void InitParamsRandom();
 
+		bool IsSimilar(const HMM& hmm, const double eps = 1e-3);
+
 
         // number of states
         int M;
