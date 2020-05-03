@@ -9,18 +9,10 @@
 
 #define N_ITERATIONS 10
 #define N_RUNS 1
-#define SEQ_LEN 50
+#define SEQ_LEN 64
+
 
 int main(int argc, char** argv) {
-
-	/*
-	 *  This is how we would get initialization parameters + observations from file
-		std::string init_file { "init_params.txt" };
-		std::string obs_file { "observations.txt" };
-		perf_test_chrono(init_file, obs_file, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
-		perf_test_rdtscp(init_file, obs_file, &run_bw, N_RUNS, N_ITERATIONS, std::cout);
-	*/
-
 
 
 	int n_states = 100;
@@ -68,49 +60,24 @@ int main(int argc, char** argv) {
         }
 
     }
-  // Add Garbage COllector
 
-  //END OF VALIDATION PART
-  //
-		// Measurements regarding the C++ baseline implementation
-		perf_test_rdtscp("Baseline implementation", &baum_welch,
-				n_states, n_emissions, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
-		perf_test_chrono("Baseline implementation", &baum_welch,
-				n_states, n_emissions, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
+	// Measurements regarding the C++ baseline implementation
+	perf_test_rdtscp("C++ Baseline", &baum_welch, n_states, n_emissions, SEQ_LEN,
+			N_RUNS, N_ITERATIONS, std::cout);
+	perf_test_chrono("C++ Baseline", &baum_welch, n_states, n_emissions, SEQ_LEN,
+			N_RUNS, N_ITERATIONS, std::cout);
 
-		// Measurements regarding the C-like implementation
-		perf_test_rdtscp("Basic opts", &run_bw, n_states, n_emissions, SEQ_LEN,
-				N_RUNS, N_ITERATIONS, std::cout);
-		perf_test_chrono("Basic opts", &run_bw, n_states, n_emissions, SEQ_LEN,
-				N_RUNS, N_ITERATIONS, std::cout);
+	// Measurements regarding the C-like implementation
+	perf_test_rdtscp("C-like Baseline", &run_bw, n_states, n_emissions, SEQ_LEN,
+			N_RUNS, N_ITERATIONS, std::cout);
+	perf_test_chrono("C-like Baseline", &run_bw, n_states, n_emissions, SEQ_LEN,
+			N_RUNS, N_ITERATIONS, std::cout);
 
-
-
-		/*
-		std::vector<std::vector<int>> inputs {
-			{16, 16, 256}, {16, 32, 256}, {64, 128, 256},
-			{32, 32, 256}, {64, 64, 256}, {128, 128, 256},
-			{32, 64, 256}, {64, 128, 256}, {128, 256, 256},
-		};
-
-
-		for (const auto& input: inputs) {
-			int N = input[0], M = input[1], S = input[2];
-
-			// Measurements regarding the C++ baseline implementation
-			perf_test_rdtscp("Baseline implementation", &baum_welch,
-					N, M, S, N_RUNS, N_ITERATIONS, std::cout, false);
-			perf_test_chrono("Baseline implementation", &baum_welch,
-					N, M, S, N_RUNS, N_ITERATIONS, std::cout, false);
-
-			// Measurements regarding the C-like implementation
-			perf_test_rdtscp("Basic opts", &run_bw, N, M, S, N_RUNS,
-					N_ITERATIONS, std::cout, false);
-			perf_test_chrono("Basic opts", &run_bw, N, M, S, N_RUNS,
-					N_ITERATIONS, std::cout, false);
-		}
-		*/
-
+	// Measurements for basic optimizations implementation
+	perf_test_rdtscp("Basic opts", &run_bw_basic_opts, n_states, n_emissions, SEQ_LEN,
+			N_RUNS, N_ITERATIONS, std::cout);
+	perf_test_chrono("Basic opts", &run_bw_basic_opts, n_states, n_emissions, SEQ_LEN,
+			N_RUNS, N_ITERATIONS, std::cout);
 
 
 }

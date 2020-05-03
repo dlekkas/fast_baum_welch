@@ -14,15 +14,14 @@ include_directories(${INCLUDE_DIR})
 
 
 file(GLOB IMPLEMENTATIONS "src/baum_welch/*.cc")
+file(GLOB BENCHMARKS "benchmarks/*.cc")
 file(GLOB SOURCES "src/*.cc")
 
 
-foreach( impl_file ${IMPLEMENTATIONS} )
+foreach( bench_file ${BENCHMARKS} )
 
-	string(REPLACE ".cc" "" exec_name ${impl_file})
+	string(REPLACE ".cc" "" exec_name ${bench_file})
 	get_filename_component(exec_name ${exec_name} NAME)
-	add_executable(${exec_name} ${SOURCES} ${impl_file})
+	add_executable(${exec_name} ${SOURCES} ${IMPLEMENTATIONS} ${bench_file})
 
-endforeach( impl_file ${IMPLEMENTATIONS} )
-
-
+endforeach( bench_file ${BENCHMARKS} )

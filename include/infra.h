@@ -5,22 +5,23 @@
 
 #include "hmm.h"
 
-using compute_func = void (*)(int, int, int, int*, double*, double**, double**, double**, double**, double**, double***);
+using compute_func = void (*)(int, int, int, int*, double*, double**, double**,
+		double**, double**, double**, double***);
 
 using compute_func2 = void (*)(Matrix_v&, Matrix_v&, std::vector<double>&,
 		const std::vector<int>&);
 
 void perf_test_rdtscp(const std::string& tag, compute_func baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print = true);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
 
 void perf_test_rdtscp(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print = true);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
 
 void perf_test_chrono(const std::string& tag, compute_func baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print = true);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
 
 void perf_test_chrono(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool print = true);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
 
 
 

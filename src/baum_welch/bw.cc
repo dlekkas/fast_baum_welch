@@ -7,7 +7,7 @@
 #include <math.h>
 #include "../include/bw.h"
 
-int it=0;
+static int it=0;
 
 void forward_backward(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq) {
@@ -147,11 +147,10 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
 void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
         double** forward, double** backward, double** g, double*** chsi) {
 
-    bool has_converged = false;
     int iterations = 0;
     while (iterations < MAX_ITERATIONS) { // SET TO MAX ITER
         forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence);
-        has_converged = update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, g, chsi);
+        update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, g, chsi);
         iterations++;
         it++;
     }
