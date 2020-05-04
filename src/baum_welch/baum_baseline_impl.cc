@@ -41,7 +41,7 @@ void baum_welch(Matrix_v& transition, Matrix_v& emission, vector<double>& init_p
 	// scaling factors required to avoid summation to zero due to limited precision
 	vector<double> scale_c(T);
 
-	for (int i = 0; i < MAX_ITER; i++) {
+	for (int i = 0; i < MAX_ITERATIONS; i++) {
 		Matrix_v fwd = forward(transition, emission, init_prob, observation, scale_c);
 		Matrix_v bwd = backward(transition, emission, init_prob, observation, scale_c);
 

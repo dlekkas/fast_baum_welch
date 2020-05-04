@@ -90,13 +90,13 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     double new_B;
 
     // estimate new initial vector, transition and emission matrixes
-    double diff;
+    //double diff;
     for (i=0; i<M; i++) {
         new_pi = g[i][0];
-        diff = std::abs(pi[i] - new_pi);
-        if (diff > THRESHOLD) {
-            converged = false;
-        }
+        //diff = std::abs(pi[i] - new_pi);
+        //if (diff > THRESHOLD) {
+        //    converged = false;
+        //}
         pi[i] = new_pi;
     }
 
@@ -110,10 +110,10 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
                 sum2 += chsi[i][j][t];
             new_A = sum2/sum;
 
-            diff = std::abs(A[i][j] - new_A);
-            if (diff > THRESHOLD) {
-                converged = false;
-            }
+            //diff = std::abs(A[i][j] - new_A);
+            //if (diff > THRESHOLD) {
+            //    converged = false;
+            //}
             A[i][j] = new_A;
 
         }
@@ -131,10 +131,10 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
             }
             new_B = occurrences/sum;
 
-            diff = std::abs(B[i][vk] - new_B);
-            if (diff > THRESHOLD) {
-                converged = false;
-            }
+            //diff = std::abs(B[i][vk] - new_B);
+            //if (diff > THRESHOLD) {
+            //    converged = false;
+            //}
 
             B[i][vk] = new_B;
         }
