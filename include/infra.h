@@ -28,6 +28,8 @@ bool IsValidImpl(compute_func impl, compute_func base);
 
 bool IsValidImpl(compute_func impl);
 
+bool IsValidImpl(compute_func2 impl);
+
 
 
 /* helper functions to preallocate/free memory needed for baum-welch */

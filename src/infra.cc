@@ -193,6 +193,29 @@ bool IsValidImpl(compute_func impl) {
 	return test_model.IsSimilar(base_model);
 }
 
+bool IsValidImpl(compute_func2 impl) {
+	int n = 16, m = 32, o = 32;
+
+	HMM base_model(m, n);
+	HMM test_model(base_model);
+
+	std::vector<int> obs = uniform_emission_sample(o, n);
+
+	baum_welch(base_model.transition, base_model.emission, base_model.pi, obs);
+	for (auto i = 0; i < m; i++) {
+		std::copy(base_model.transition[i].begin(), base_model.transition[i].end(), base_model.A[i]);
+		std::copy(base_model.emission[i].begin(), base_model.emission[i].end(), base_model.B[i]);
+	}
+
+	impl(test_model.transition, test_model.emission, test_model.pi, obs);
+	for (auto i = 0; i < m; i++) {
+		std::copy(test_model.transition[i].begin(), test_model.transition[i].end(), test_model.A[i]);
+		std::copy(test_model.emission[i].begin(), test_model.emission[i].end(), test_model.B[i]);
+	}
+
+	return test_model.IsSimilar(base_model);
+}
+
 
 
 

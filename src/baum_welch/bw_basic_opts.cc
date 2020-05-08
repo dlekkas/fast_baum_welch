@@ -64,23 +64,17 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     // double denom[T];
 
     for (t=0; t<T; t++) {
-        // double sum = 0.0;
-        // for (j=0; j<M; j++)
-           // sum += forward[j][t] * backward[j][t];
-        // denom[t] = sum;
         for (i=0; i<M; i++)
             g[i][t] = (forward[i][t] * backward[i][t])/sc_factors[t];
     }
 
     //double den;
     for (t=0; t<T-1; t++) {
-        // den = denom[t] / sc_factors[t];
         // We proved by induction that the denominator of this chsi[i][j][t] is 1. We need to validate it and review the proof to be sure.
         // If this fails, we can merge the computation of gamma and chsi.
         for (i=0; i<M; i++)
             for (j=0; j<M; j++) {
                 chsi[i][j][t] = forward[i][t] * A[i][j] * backward[j][t+1] * B[j][observation_seq[t+1]];
-                // chsi[i][j][t] = chsi[i][j][t] / den;
             }
     }
 
@@ -90,13 +84,8 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     double new_B;
 
     // estimate new initial vector, transition and emission matrixes
-    //double diff;
     for (i=0; i<M; i++) {
         new_pi = g[i][0];
-        //diff = std::abs(pi[i] - new_pi);
-        //if (diff > THRESHOLD) {
-        //    converged = false;
-        //}
         pi[i] = new_pi;
     }
 
@@ -109,11 +98,6 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
             for (t=0; t<T-1; t++)
                 sum2 += chsi[i][j][t];
             new_A = sum2/sum;
-
-            //diff = std::abs(A[i][j] - new_A);
-            //if (diff > THRESHOLD) {
-            //    converged = false;
-            //}
             A[i][j] = new_A;
 
         }
@@ -130,11 +114,6 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
                     occurrences += g[i][t];
             }
             new_B = occurrences/sum;
-
-            //diff = std::abs(B[i][vk] - new_B);
-            //if (diff > THRESHOLD) {
-            //    converged = false;
-            //}
 
             B[i][vk] = new_B;
         }

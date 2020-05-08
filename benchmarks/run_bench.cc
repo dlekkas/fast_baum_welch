@@ -49,6 +49,10 @@ int main() {
 			perf_test_rdtscp(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true);
 			perf_test_chrono(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true);
 		}
+
+		// Measurements regarding the C++ baseline implementation
+		perf_test_rdtscp("C++ Baseline Opts", &baum_welch_opts, M, N, S, N_RUNS, N_ITER, std::cout, true);
+		perf_test_chrono("C++ Baseline Opts", &baum_welch_opts, M, N, S, N_RUNS, N_ITER, std::cout, true);
 	}
 
 }

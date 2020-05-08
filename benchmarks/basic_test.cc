@@ -17,6 +17,7 @@
 
 using namespace std;
 using Implementation = tuple<string, compute_func>;
+using Implementation_cpp = tuple<string, compute_func2>;
 
 
 int main() {
@@ -24,11 +25,23 @@ int main() {
 	// entry: { <implementation-tag> <baum-welch-function> }
 	vector<Implementation> implementations {
 		{"C-like Baseline", &run_bw},
-		{"Basic Opts", &run_bw_basic_opts}
+		{"C-like Basic Opts", &run_bw_basic_opts}
 	};
 
 
 	for (const auto& [impl_tag, bw_func]: implementations) {
+		if (!IsValidImpl(bw_func)) {
+			cout << "[" << impl_tag << "] Invalid implementation!" << endl;
+		}
+		perf_test_rdtscp(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
+		perf_test_chrono(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
+	}
+
+	vector<Implementation_cpp> implementations_new {
+		{"C++ Basic Opts", &baum_welch_opts}
+	};
+
+	for (const auto& [impl_tag, bw_func]: implementations_new) {
 		if (!IsValidImpl(bw_func)) {
 			cout << "[" << impl_tag << "] Invalid implementation!" << endl;
 		}
