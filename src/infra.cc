@@ -23,8 +23,8 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 	for (auto i = 0; i < n_iter; i++) {
 
 		HMM model(base_model);
-		double** forward = allocate_2d(model.M, observations.size());
-		double** backward = allocate_2d(model.M, observations.size());
+		double** forward = allocate_2d(observations.size(), model.M);
+		double** backward = allocate_2d(observations.size(), model.M);
 		double** g = allocate_2d(model.M, observations.size());
 		double*** chsi = allocate_3d(model.M, model.M, observations.size());
 
@@ -35,7 +35,7 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 		}
 		uint64_t end = stop_tsc();
 		uint64_t cycles = (end - start) / (double) n_runs;
-		forward = free_2d(forward, model.M, observations.size());
+		forward = free_2d(forward, observations.size(), model.M);
 		backward = free_2d(backward, model.M, observations.size());
 		g = free_2d(g, model.M, observations.size());
 		chsi = free_3d(chsi, model.M, model.M, observations.size());
@@ -102,8 +102,8 @@ void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
 	for (auto i = 0; i < n_iter; i++) {
 		HMM model(base_model);
 
-		double** forward = allocate_2d(model.M, observations.size());
-		double** backward = allocate_2d(model.M, observations.size());
+		double** forward = allocate_2d(observations.size(), model.M);
+		double** backward = allocate_2d(observations.size(), model.M);
 		double** g = allocate_2d(model.M, observations.size());
 		double*** chsi = allocate_3d(model.M, model.M, observations.size());
 
@@ -116,7 +116,7 @@ void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
 		auto duration_us = std::chrono::duration_cast
 			<std::chrono::milliseconds>(end - begin).count() / n_runs;
 
-		forward = free_2d(forward, model.M, observations.size());
+		forward = free_2d(forward, observations.size(), model.M);
 		backward = free_2d(backward, model.M, observations.size());
 		g = free_2d(g, model.M, observations.size());
 		chsi = free_3d(chsi, model.M, model.M, observations.size());
@@ -184,8 +184,8 @@ bool IsValidImpl(compute_func impl) {
 		std::copy(base_model.emission[i].begin(), base_model.emission[i].end(), base_model.B[i]);
 	}
 
-	double** fwd = allocate_2d(m, o);
-	double** bwd = allocate_2d(m, o);
+	double** fwd = allocate_2d(o, m);
+	double** bwd = allocate_2d(o, m);
 	double** g = allocate_2d(m, o);
 	double*** chsi = allocate_3d(m, m, o);
 	impl(m, n, o, obs.data(), test_model.pi.data(), test_model.A, test_model.B, fwd, bwd, g, chsi);

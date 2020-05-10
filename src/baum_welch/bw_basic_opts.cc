@@ -8,20 +8,20 @@
 
 static int it=0;
 
-void forward_backward(double** forward, double** backward, int M, int N, int T,
+static void forward_backward(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
 
     int i, j, t;
 
     double sum_i0 = 0.0;
     for (i=0; i<M; i++) {
-        forward[i][0] = pi[i] * B[i][observation_seq[0]];
-        sum_i0 += forward[i][0];
+        forward[0][i] = pi[i] * B[i][observation_seq[0]];
+        sum_i0 += forward[0][i];
     }
     sc_factors[0] = 1.0/sum_i0;
 
     for (i=0; i<M; i++) {
-        forward[i][0] = forward[i][0]*sc_factors[0];
+        forward[0][i] = forward[0][i]*sc_factors[0];
     }
 
     for (t=1; t<T; t++) {
@@ -29,31 +29,31 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 	    for (i=0; i<M; i++) {
             double sum = 0.0;
             for (j=0; j<M; j++)
-                sum += forward[j][t-1] * A[j][i];
-            forward[i][t] = B[i][observation_seq[t]] * sum;
-            sum_i += forward[i][t];
+                sum += forward[t-1][j] * A[j][i];
+            forward[t][i] = B[i][observation_seq[t]] * sum;
+            sum_i += forward[t][i];
         }
         sc_factors[t] = 1.0/sum_i;
         for (i=0; i<M; i++)
-            forward[i][t] = forward[i][t]*sc_factors[t];
+            forward[t][i] = forward[t][i]*sc_factors[t];
     }
 
     for (i=0; i<M; i++)
-        backward[i][T-1] = sc_factors[T-1];
+        backward[T-1][i] = sc_factors[T-1];
 
     for (t=T-2; t>=0; t--) {
         for (i=0; i<M; i++) {
             double sum = 0.0;
             for (j=0; j<M; j++)
-                sum += backward[j][t+1] * A[i][j] * B[j][observation_seq[t+1]];
-            backward[i][t] = sum*sc_factors[t];
+                sum += backward[t+1][j] * A[i][j] * B[j][observation_seq[t+1]];
+            backward[t][i] = sum*sc_factors[t];
         }
     }
 
 }
 
 
-bool update_and_check(double** forward, double** backward, int M, int N, int T,
+static bool update_and_check(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq, double *sc_factors, double** g, double*** chsi) {
 
     int i, j, t, vk;
@@ -65,7 +65,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
 
     for (t=0; t<T; t++) {
         for (i=0; i<M; i++)
-            g[i][t] = (forward[i][t] * backward[i][t])/sc_factors[t];
+            g[i][t] = (forward[t][i] * backward[t][i])/sc_factors[t];
     }
 
     //double den;
@@ -74,7 +74,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
         // If this fails, we can merge the computation of gamma and chsi.
         for (i=0; i<M; i++)
             for (j=0; j<M; j++) {
-                chsi[i][j][t] = forward[i][t] * A[i][j] * backward[j][t+1] * B[j][observation_seq[t+1]];
+                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[j][observation_seq[t+1]];
             }
     }
 

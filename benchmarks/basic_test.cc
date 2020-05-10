@@ -7,7 +7,7 @@
 #include "../include/hmm.h"
 #include "../include/generator.h"
 
-#define N_ITERATIONS 10
+#define N_ITERATIONS 20
 #define N_RUNS 1
 
 #define SEQ_LEN 128
@@ -25,7 +25,8 @@ int main() {
 	// entry: { <implementation-tag> <baum-welch-function> }
 	vector<Implementation> implementations {
 		{"C-like Baseline", &run_bw},
-		{"C-like Basic Opts", &run_bw_basic_opts}
+		{"C-like Basic Opts", &run_bw_basic_opts},
+		{"C-like More Opts", &run_bw_opts_v2},
 	};
 
 
