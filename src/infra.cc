@@ -189,8 +189,8 @@ bool IsValidImpl(compute_func impl) {
 	}
 
 
-	double** fwd = allocate_2d(m, o);
-	double** bwd = allocate_2d(m, o);
+	double** fwd = allocate_2d(o, m);
+	double** bwd = allocate_2d(o, m);
 	double** g = allocate_2d(m, o);
 	double*** chsi = allocate_3d(m, m, o);
 	impl(m, n, o, obs.data(), test_model.pi.data(), test_model.A, test_model.B, fwd, bwd, g, chsi);

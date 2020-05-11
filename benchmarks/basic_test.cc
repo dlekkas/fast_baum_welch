@@ -22,8 +22,6 @@ using Implementation_cpp = tuple<string, compute_func2>;
 
 int main() {
 
-	// entry: { <implementation-tag> <baum-welch-function> }
-	/*
 	vector<Implementation> implementations {
 		{"C-like Baseline", &run_bw},
 	//	{"C-like Basic Opts", &run_bw_basic_opts},
@@ -38,7 +36,6 @@ int main() {
 		perf_test_rdtscp(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
 		perf_test_chrono(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
 	}
-	*/
 
 	vector<Implementation_cpp> implementations_new {
 		{"C++ Baseline", &baum_welch},

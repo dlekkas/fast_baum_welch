@@ -18,7 +18,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 
     double sum_i0 = 0.0;
     for (i=0; i<M; i++) {
-        forward[0][i] = pi[i] * B[i][observation_seq[0]];
+        forward[0][i] = pi[i] * B[observation_seq[0]][i];
         sum_i0 += forward[0][i];
     }
     sc_factors[0] = 1.0/sum_i0;
@@ -33,7 +33,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
             double sum = 0.0;
             for (j=0; j<M; j++)
                 sum += forward[t-1][j] * A[j][i];
-            forward[t][i] = B[i][observation_seq[t]] * sum;
+            forward[t][i] = B[observation_seq[t]][i] * sum;
             sum_i += forward[t][i];
         }
         sc_factors[t] = 1.0/sum_i;
@@ -48,7 +48,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
         for (i=0; i<M; i++) {
             double sum = 0.0;
             for (j=0; j<M; j++)
-                sum += backward[t+1][j] * A[i][j] * B[j][observation_seq[t+1]];
+                sum += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
             backward[t][i] = sum*sc_factors[t];
         }
     }
@@ -75,12 +75,12 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
         double sum = 0.0;
         for (k=0; k<M; k++) {
             for (w=0; w<M; w++)
-                sum += forward[t][k] * A[k][w] * backward[t+1][w] * B[w][observation_seq[t+1]];
+                sum += forward[t][k] * A[k][w] * backward[t+1][w] * B[observation_seq[t+1]][w];
         }
         assert(sum != 0.0);
         for (i=0; i<M; i++)
             for (j=0; j<M; j++) {
-                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[j][observation_seq[t+1]];
+                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[observation_seq[t+1]][j];
                 chsi[i][j][t] = chsi[i][j][t]/sum;
             }
     }
@@ -121,7 +121,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
                     occurrences += g[i][t];
             }
             new_B = occurrences/sum;
-            B[i][vk] = new_B;
+            B[vk][i] = new_B;
         }
     }
 
@@ -135,6 +135,7 @@ void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, doub
     while (iterations < MAX_ITERATIONS) { // SET TO MAX ITER
         forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence);
         update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, g, chsi);
+
         iterations++;
         it++;
     }
