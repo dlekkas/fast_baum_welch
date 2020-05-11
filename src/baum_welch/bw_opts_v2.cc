@@ -15,7 +15,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 
 	// ops = 2*M , mem = 4*M
     for (int i = 0; i < M; i++) {
-        forward[0][i] = pi[i] * B[i][observation_seq[0]];
+        forward[0][i] = pi[i] * B[observation_seq[0]][i];
         sum += forward[0][i];
     }
     sc_factors[0] = 1.0 / sum;
@@ -33,7 +33,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
             for (int j = 0; j < M; j++) {
                 acc += forward[t-1][j] * A[j][i];
 			}
-            forward[t][i] = B[i][observation_seq[t]] * acc;
+            forward[t][i] = B[observation_seq[t]][i] * acc;
             sum += forward[t][i];
         }
         sc_factors[t] = 1.0 / sum;
@@ -50,7 +50,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
         for (int i = 0; i < M; i++) {
             sum = 0.0;
             for (int j = 0; j < M; j++) {
-                sum += backward[t+1][j] * A[i][j] * B[j][observation_seq[t+1]];
+                sum += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
 			}
             backward[t][i] = sum*sc_factors[t];
         }
@@ -74,7 +74,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     for (int t = 0; t < T-1; t++) {
         for (int i = 0; i < M; i++) {
             for (int j = 0; j < M; j++) {
-                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[j][observation_seq[t+1]];
+                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[observation_seq[t+1]][j];
             }
 		}
     }
@@ -120,7 +120,7 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
             }
             new_B = occurrences/sum;
 
-            B[i][vk] = new_B;
+			B[vk][i] = new_B;
         }
     }
 

@@ -15,7 +15,7 @@ static void forward_backward(double** forward, double** backward, int M, int N, 
 
     double sum_i0 = 0.0;
     for (i=0; i<M; i++) {
-        forward[0][i] = pi[i] * B[i][observation_seq[0]];
+        forward[0][i] = pi[i] * B[observation_seq[0]][i];
         sum_i0 += forward[0][i];
     }
     sc_factors[0] = 1.0/sum_i0;
@@ -30,7 +30,7 @@ static void forward_backward(double** forward, double** backward, int M, int N, 
             double sum = 0.0;
             for (j=0; j<M; j++)
                 sum += forward[t-1][j] * A[j][i];
-            forward[t][i] = B[i][observation_seq[t]] * sum;
+            forward[t][i] = B[observation_seq[t]][i] * sum;
             sum_i += forward[t][i];
         }
         sc_factors[t] = 1.0/sum_i;
@@ -45,7 +45,7 @@ static void forward_backward(double** forward, double** backward, int M, int N, 
         for (i=0; i<M; i++) {
             double sum = 0.0;
             for (j=0; j<M; j++)
-                sum += backward[t+1][j] * A[i][j] * B[j][observation_seq[t+1]];
+                sum += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
             backward[t][i] = sum*sc_factors[t];
         }
     }
@@ -74,7 +74,7 @@ static bool update_and_check(double** forward, double** backward, int M, int N, 
         // If this fails, we can merge the computation of gamma and chsi.
         for (i=0; i<M; i++)
             for (j=0; j<M; j++) {
-                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[j][observation_seq[t+1]];
+                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[observation_seq[t+1]][j];
             }
     }
 
@@ -115,7 +115,7 @@ static bool update_and_check(double** forward, double** backward, int M, int N, 
             }
             new_B = occurrences/sum;
 
-            B[i][vk] = new_B;
+            B[vk][i] = new_B;
         }
     }
 

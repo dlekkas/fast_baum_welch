@@ -24,8 +24,8 @@ int main() {
 
 	vector<Implementation> implementations {
 		{"C-like Baseline", &run_bw},
-	//	{"C-like Basic Opts", &run_bw_basic_opts},
-	//	{"C-like More Opts", &run_bw_opts_v2},
+		{"C-like Basic Opts", &run_bw_basic_opts},
+		{"C-like More Opts", &run_bw_opts_v2},
 	};
 
 
