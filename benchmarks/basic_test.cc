@@ -22,21 +22,6 @@ using Implementation_cpp = tuple<string, compute_func2>;
 
 int main() {
 
-	vector<Implementation> implementations {
-		{"C-like Baseline", &run_bw},
-		{"C-like Basic Opts", &run_bw_basic_opts},
-		{"C-like More Opts", &run_bw_opts_v2},
-	};
-
-
-	for (const auto& [impl_tag, bw_func]: implementations) {
-		if (!IsValidImpl(bw_func)) {
-			cout << "[" << impl_tag << "] Invalid implementation!" << endl;
-		}
-		perf_test_rdtscp(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
-		perf_test_chrono(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
-	}
-
 	vector<Implementation_cpp> implementations_new {
 		{"C++ Baseline", &baum_welch},
 		{"C++ Basic Opts", &baum_welch_opts}
@@ -49,5 +34,21 @@ int main() {
 		perf_test_rdtscp(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
 		perf_test_chrono(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
 	}
+
+	vector<Implementation> implementations {
+		//{"C-like Baseline", &run_bw},
+		{"C-like Basic Opts", &run_bw_basic_opts},
+		{"C-like More Opts", &run_bw_opts_v2},
+	};
+
+	for (const auto& [impl_tag, bw_func]: implementations) {
+		if (!IsValidImpl(bw_func)) {
+			cout << "[" << impl_tag << "] Invalid implementation!" << endl;
+		}
+		perf_test_rdtscp(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
+		perf_test_chrono(impl_tag, bw_func, M, N, SEQ_LEN, N_RUNS, N_ITERATIONS, std::cout);
+	}
+
+
 
 }

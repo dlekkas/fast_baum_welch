@@ -7,7 +7,7 @@
 #include "../include/bw.h"
 
 
-void forward_backward(double** forward, double** backward, int M, int N, int T,
+inline void forward_backward(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
 
     double sum = 0.0, acc = 0.0;
@@ -27,6 +27,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 
 	// ops = 2*T*M^2 , mem = 2*T*M^2
     for (int t = 1; t < T; t++) {
+
         sum = 0.0;
 	    for (int i = 0; i < M; i++) {
             acc = 0.0;
@@ -46,6 +47,7 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
         backward[T-1][i] = sc_factors[T-1];
 	}
 
+	// ops = 3*T*M^2, mem = 3*T*M^2
     for (int t = T-2; t >= 0; t--) {
         for (int i = 0; i < M; i++) {
             sum = 0.0;
@@ -59,72 +61,52 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 }
 
 
-bool update_and_check(double** forward, double** backward, int M, int N, int T,
+inline void update_and_check(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq, double *sc_factors, double** g, double*** chsi) {
 
-    bool converged = true;
 
+
+	// ops = 3*T*M^2 , mem = 5*T*M^2
 	for (int i = 0; i < M; i++) {
-		for (int t = 0; t < T; t++) {
-			g[i][t] = (forward[t][i] * backward[t][i])/sc_factors[t];
-		}
-    }
 
-    //double den;
-    for (int t = 0; t < T-1; t++) {
-        for (int i = 0; i < M; i++) {
-            for (int j = 0; j < M; j++) {
-                chsi[i][j][t] = forward[t][i] * A[i][j] * backward[t+1][j] * B[observation_seq[t+1]][j];
+		pi[i] = (forward[0][i] * backward[0][i]) / sc_factors[0];
+
+        double acc = pi[i];
+        for (int t = 1; t < T-1; t++) {
+            acc += (forward[t][i] * backward[t][i])/sc_factors[t];
+		}
+
+		for (int j = 0; j < M; j++) {
+			double sum = 0.0;
+			for (int t = 0; t < T-1; t++) {
+                sum += (backward[t+1][j] * B[observation_seq[t+1]][j]) * (forward[t][i] * A[i][j]);
             }
+			A[i][j] = sum / acc;
 		}
+
     }
 
 
-    double new_pi;
-    double new_A;
-    double new_B;
-
-    // estimate new initial vector, transition and emission matrixes
     for (int i = 0; i < M; i++) {
-        new_pi = g[i][0];
-        pi[i] = new_pi;
-    }
 
-    for (int i = 0; i < M; i++) {
-        double sum = 0.0;
-        for (int t = 0; t < T-1; t++) {
-            sum += g[i][t];
-		}
-        for (int j = 0; j < M; j++) {
-            double sum2 = 0.0;
-            for (int t = 0; t < T-1; t++) {
-                sum2 += chsi[i][j][t];
-			}
-            new_A = sum2/sum;
-            A[i][j] = new_A;
-
-        }
-    }
-
-    for (int i = 0; i < M; i++) {
         double sum = 0.0;
         for (int t = 0; t < T; t++) {
-            sum += g[i][t];
+            sum += (forward[t][i] / sc_factors[t]) * backward[t][i];
 		}
+
         for (int vk = 0; vk < N; vk++) {
+
             double occurrences  = 0.0;
             for (int t = 0; t < T; t++) {
                 if (observation_seq[t] == vk) {
-                    occurrences += g[i][t];
+                    occurrences += (forward[t][i] * backward[t][i]) / sc_factors[t];
 				}
             }
-            new_B = occurrences/sum;
-
-			B[vk][i] = new_B;
+			B[vk][i] = occurrences / sum;
         }
     }
 
-    return converged;
+
 }
 
 void run_bw_opts_v2(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
