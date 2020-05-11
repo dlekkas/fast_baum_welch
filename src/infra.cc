@@ -80,6 +80,7 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func2 baum_welch,
 
 	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size());
 
+
 	if (to_CSV) {
 		bench.CSVPrint("results_cycles.txt");
 	} else {
@@ -181,11 +182,15 @@ bool IsValidImpl(compute_func impl) {
 	baum_welch(base_model.transition, base_model.emission, base_model.pi, obs);
 	for (auto i = 0; i < m; i++) {
 		std::copy(base_model.transition[i].begin(), base_model.transition[i].end(), base_model.A[i]);
+	}
+
+	for (auto i = 0; i < n; i++) {
 		std::copy(base_model.emission[i].begin(), base_model.emission[i].end(), base_model.B[i]);
 	}
 
-	double** fwd = allocate_2d(o, m);
-	double** bwd = allocate_2d(o, m);
+
+	double** fwd = allocate_2d(m, o);
+	double** bwd = allocate_2d(m, o);
 	double** g = allocate_2d(m, o);
 	double*** chsi = allocate_3d(m, m, o);
 	impl(m, n, o, obs.data(), test_model.pi.data(), test_model.A, test_model.B, fwd, bwd, g, chsi);
@@ -204,12 +209,19 @@ bool IsValidImpl(compute_func2 impl) {
 	baum_welch(base_model.transition, base_model.emission, base_model.pi, obs);
 	for (auto i = 0; i < m; i++) {
 		std::copy(base_model.transition[i].begin(), base_model.transition[i].end(), base_model.A[i]);
+	}
+
+	for (auto i = 0; i < n; i++) {
 		std::copy(base_model.emission[i].begin(), base_model.emission[i].end(), base_model.B[i]);
 	}
+
 
 	impl(test_model.transition, test_model.emission, test_model.pi, obs);
 	for (auto i = 0; i < m; i++) {
 		std::copy(test_model.transition[i].begin(), test_model.transition[i].end(), test_model.A[i]);
+	}
+
+	for (auto i = 0; i < n; i++) {
 		std::copy(test_model.emission[i].begin(), test_model.emission[i].end(), test_model.B[i]);
 	}
 

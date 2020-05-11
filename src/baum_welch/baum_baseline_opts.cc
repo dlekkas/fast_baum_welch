@@ -95,7 +95,7 @@ void expectation_step(const Matrix_v& transition, const Matrix_v& emission,
 				// probability of being in state `i` at time `t`, at state `j`
 				// at time `t+1` and observing sequence `observation`
 				double joint_prob = fwd[t][i] * transition[i][j] *
-					emission[j][observation[t+1]] * bwd[t+1][j];
+					emission[observation[t+1]][j] * bwd[t+1][j];
 				// straightforward derivation from Bayes' theorem
 				ksi[t][i][j] = joint_prob ;/// obs_prob;
 			}
@@ -121,7 +121,7 @@ void expectation_step(const Matrix_v& transition, const Matrix_v& emission,
 void maximization_step(Matrix_v& transition, Matrix_v& emission, vector<double>& init_prob,
 		const vector<int>& observation, const Matrix_v& gamma, const vector<Matrix_v>& ksi) {
 
-	int n_emissions = emission[0].size();
+	int n_emissions = emission.size();
 	int n_states = transition.size();
 	int T = observation.size();
 
@@ -163,7 +163,7 @@ void maximization_step(Matrix_v& transition, Matrix_v& emission, vector<double>&
 			}
 
 			/* update emission matrix based on likelihood maximization */
-			emission[i][m] = n_obs_im / n_obs_i;
+			emission[m][i] = n_obs_im / n_obs_i;
 		}
 	}
 
@@ -186,7 +186,7 @@ Matrix_v forward(const Matrix_v& transition, const Matrix_v& emission,
 
 	/* calculate initial probability */
 	for (int i = 0; i < n_states; i++) {
-		fwd[0][i] = init_prob[i] * emission[i][observation[0]];
+		fwd[0][i] = init_prob[i] * emission[observation[0]][i];
 		scale_c[0] += fwd[0][i];
 	}
 
@@ -203,7 +203,7 @@ Matrix_v forward(const Matrix_v& transition, const Matrix_v& emission,
 
 		for (int j = 0; j < n_states; j++) {
 			for (int k = 0; k < n_states; k++) {
-				fwd[t][j] += fwd[t-1][k] * transition[k][j] * emission[j][observation[t]];
+				fwd[t][j] += fwd[t-1][k] * transition[k][j] * emission[observation[t]][j];
 			}
 			scale_c[t] += fwd[t][j];
 		}
@@ -237,7 +237,7 @@ Matrix_v backward(const Matrix_v& transition, const Matrix_v& emission,
 	for (int t = T-2; t >= 0; t--) {
 		for (int i = 0; i < n_states; i++) {
 			for (int j = 0; j < n_states; j++) {
-				bwd[t][i] += transition[i][j] * emission[j][observation[t+1]] * bwd[t+1][j];
+				bwd[t][i] += transition[i][j] * emission[observation[t+1]][j] * bwd[t+1][j];
 			}
 			bwd[t][i] *= scale_c[t];
 		}

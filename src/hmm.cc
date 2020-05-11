@@ -51,13 +51,21 @@ void HMM::InitParamsRandom() {
 	emission.reserve(M);
 	for (auto i = 0; i < M; i++) {
 		transition.emplace_back(symmetric_dirichlet_sample(M));
-		emission.emplace_back(symmetric_dirichlet_sample(N));
+	}
+
+	for (auto i = 0; i < N; i++) {
+		emission.emplace_back(symmetric_dirichlet_sample(M));
 	}
 
 	alloc_mem();
-	for (size_t i = 0; i < transition.size(); i++) {
-		std::copy(transition[i].begin(), transition[i].end(), A[i]);
+
+	for (auto i = 0; i < N; i++) {
 		std::copy(emission[i].begin(), emission[i].end(), B[i]);
+	}
+
+
+	for (auto i = 0; i < M; i++) {
+		std::copy(transition[i].begin(), transition[i].end(), A[i]);
 	}
 }
 
@@ -69,8 +77,11 @@ void HMM::InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
 	pi = init_prob;
 
 	alloc_mem();
-	for (size_t i = 0; i < trans.size(); i++) {
+	for (auto i = 0; i < M; i++) {
 		std::copy(transition[i].begin(), transition[i].end(), A[i]);
+	}
+
+	for (auto i = 0; i < N; i++) {
 		std::copy(emission[i].begin(), emission[i].end(), B[i]);
 	}
 }
@@ -90,8 +101,8 @@ bool HMM::IsSimilar(const HMM& hmm, const double eps) {
 		}
 	}
 
-	for (auto i = 0; i < M; i++) {
-		for (auto j = 0; j < N; j++) {
+	for (auto i = 0; i < N; i++) {
+		for (auto j = 0; j < M; j++) {
 			max_err = std::max(max_err, std::abs(B[i][j] - hmm.B[i][j]));
 		}
 	}
@@ -105,7 +116,10 @@ bool HMM::IsSimilar(const HMM& hmm, const double eps) {
 void HMM::alloc_mem() {
 	for (auto i = 0; i < M; i++) {
 		A[i] = new double[M];
-		B[i] = new double[N];
+	}
+
+	for (auto i = 0; i < N; i++) {
+		B[i] = new double[M];
 	}
 }
 
@@ -114,7 +128,7 @@ HMM::HMM(int states, int emissions):
 	M(states),
 	N(emissions),
 	A(new double*[states]),
-	B(new double*[states])
+	B(new double*[emissions])
 {
 	InitParamsRandom();
 }
@@ -130,17 +144,19 @@ HMM::HMM(const HMM& hmm):
 	N(hmm.N),
 	pi(hmm.pi),
 	A(new double*[hmm.M]),
-	B(new double*[hmm.M]),
+	B(new double*[hmm.N]),
 	transition(hmm.transition),
 	emission(hmm.emission)
 {
 	alloc_mem();
-	//std::copy(hmm.A, hmm.A + (M*M), A); // DID NOT WORK
-  //std::copy(hmm.B, hmm.B + (M*N), B);
-  for (size_t i = 0; i < transition.size(); i++) {
+  	for (auto i = 0; i < hmm.M; i++) {
 		std::copy(transition[i].begin(), transition[i].end(), A[i]);
+	}
+
+  	for (auto i = 0; i < hmm.N; i++) {
 		std::copy(emission[i].begin(), emission[i].end(), B[i]);
 	}
+
 }
 
 
@@ -153,8 +169,10 @@ HMM::~HMM() {
 		delete[] A;
 	}
 
+
+
 	if (B != nullptr) {
-		for (int i = 0; i < M; i++) {
+		for (int i = 0; i < N; i++) {
 			delete[] B[i];
 		}
 		delete[] B;

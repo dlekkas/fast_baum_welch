@@ -99,7 +99,7 @@ void expectation_step(const Matrix_v& transition, const Matrix_v& emission,
 				// probability of being in state `i` at time `t`, at state `j`
 				// at time `t+1` and observing sequence `observation`
 				double joint_prob = fwd[t][i] * transition[i][j] *
-					emission[j][observation[t+1]] * bwd[t+1][j];
+					emission[observation[t+1]][j] * bwd[t+1][j];
 
 				// straightforward derivation from Bayes' theorem
 				ksi[t][i][j] = joint_prob ;/// obs_prob;
@@ -125,13 +125,6 @@ void expectation_step(const Matrix_v& transition, const Matrix_v& emission,
 		}
 	}
 
-	/*for (int i=0; i<n_states; i++) {
-		for (int t=0; t<T; t++) {
-			cout << gamma[i][t] << " ";
-		}
-		cout << endl;
-	}*/
-
 }
 
 
@@ -140,7 +133,7 @@ void expectation_step(const Matrix_v& transition, const Matrix_v& emission,
 void maximization_step(Matrix_v& transition, Matrix_v& emission, vector<double>& init_prob,
 		const vector<int>& observation, const Matrix_v& gamma, const vector<Matrix_v>& ksi) {
 
-	int n_emissions = emission[0].size();
+	int n_emissions = emission.size();
 	int n_states = transition.size();
 	int T = observation.size();
 
@@ -167,25 +160,16 @@ void maximization_step(Matrix_v& transition, Matrix_v& emission, vector<double>&
 		}
 	}
 
-	/*cout << "---------------------------- transition: " << endl;
-    for (int i=0; i<n_states; i++) {
-		for (int j=0; j<n_states; j++) {
-			cout << transition[i][j] << " ";
-		}
-		cout << endl;
-	}
-		cout << endl;*/
-
 
 	for (int i = 0; i < n_states; i++) {
-		/* expected number of times of being in state `i` */
+		// expected number of times of being in state `i`
 		double n_obs_i = 0.0;
 		for (int t = 0; t < T; t++) {
 			n_obs_i += gamma[i][t];
 		}
 
 		for (int m = 0; m < n_emissions; m++) {
-			/* expected number of times being in state `i` and observing symbol `m` */
+			// expected number of times being in state `i` and observing symbol `m`
 			double n_obs_im = 0.0;
 			for (int t = 0; t < T; t++) {
 				if (observation[t] == m) {
@@ -193,19 +177,11 @@ void maximization_step(Matrix_v& transition, Matrix_v& emission, vector<double>&
 				}
 			}
 
-			/* update emission matrix based on likelihood maximization */
-			emission[i][m] = n_obs_im / n_obs_i;
+			// update emission matrix based on likelihood maximization
+			emission[m][i] = n_obs_im / n_obs_i;
 		}
 	}
 
-	/*cout << "---------------------------- emission: " << endl;
-    for (int i=0; i<n_states; i++) {
-		for (int j=0; j<n_emissions; j++) {
-			cout << emission[i][j] << " ";
-		}
-		cout << endl;
-	}
-	cout << endl;*/
 
 	for (int i = 0; i < n_states; i++) {
 		init_prob[i] = gamma[i][0];
@@ -226,7 +202,7 @@ Matrix_v forward(const Matrix_v& transition, const Matrix_v& emission,
 
 	/* calculate initial probability */
 	for (int i = 0; i < n_states; i++) {
-		fwd[0][i] = init_prob[i] * emission[i][observation[0]];
+		fwd[0][i] = init_prob[i] * emission[observation[0]][i];
 		scale_c[0] += fwd[0][i];
 	}
 
@@ -243,7 +219,7 @@ Matrix_v forward(const Matrix_v& transition, const Matrix_v& emission,
 
 		for (int j = 0; j < n_states; j++) {
 			for (int k = 0; k < n_states; k++) {
-				fwd[t][j] += fwd[t-1][k] * transition[k][j] * emission[j][observation[t]];
+				fwd[t][j] += fwd[t-1][k] * transition[k][j] * emission[observation[t]][j];
 			}
 			scale_c[t] += fwd[t][j];
 		}
@@ -277,7 +253,7 @@ Matrix_v backward(const Matrix_v& transition, const Matrix_v& emission,
 	for (int t = T-2; t >= 0; t--) {
 		for (int i = 0; i < n_states; i++) {
 			for (int j = 0; j < n_states; j++) {
-				bwd[t][i] += transition[i][j] * emission[j][observation[t+1]] * bwd[t+1][j];
+				bwd[t][i] += transition[i][j] * emission[observation[t+1]][j] * bwd[t+1][j];
 			}
 			bwd[t][i] *= scale_c[t];
 		}

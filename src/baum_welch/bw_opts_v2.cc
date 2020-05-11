@@ -11,16 +11,21 @@ void forward_backward(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
 
     double sum = 0.0, acc = 0.0;
+
+
+	// ops = 2*M , mem = 4*M
     for (int i = 0; i < M; i++) {
         forward[0][i] = pi[i] * B[i][observation_seq[0]];
         sum += forward[0][i];
     }
     sc_factors[0] = 1.0 / sum;
 
+	// ops = M, mem = 2*M
     for (int i = 0; i < M; i++) {
         forward[0][i] *= sum;
     }
 
+	// ops = 2*T*M^2 , mem = 2*T*M^2
     for (int t = 1; t < T; t++) {
         sum = 0.0;
 	    for (int i = 0; i < M; i++) {
