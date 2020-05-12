@@ -93,14 +93,14 @@ bool HMM::IsSimilar(const HMM& hmm, const double eps) {
 
 	double max_err = 0.0;
 	for (auto i = 0; i < M; i++) {
-		if (isnan(hmm.pi[i]) || (isnan(pi[i])))
+		if (isnan(hmm.pi[i]) || isnan(pi[i]))
 			return false;
 		max_err = std::max(max_err, std::abs(pi[i] - hmm.pi[i]));
 	}
 
 	for (auto i = 0; i < M; i++) {
 		for (auto j = 0; j < M; j++) {
-			if (isnan(hmm.A[i][j]) || (isnan(A[i][j])))
+			if (isnan(hmm.A[i][j]) || isnan(A[i][j]))
 				return false;
 			max_err = std::max(max_err, std::abs(A[i][j] - hmm.A[i][j]));
 		}
@@ -108,7 +108,7 @@ bool HMM::IsSimilar(const HMM& hmm, const double eps) {
 
 	for (auto i = 0; i < N; i++) {
 		for (auto j = 0; j < M; j++) {
-			if (isnan(hmm.B[i][j]) || (isnan(B[i][j])))
+			if (isnan(hmm.B[i][j]) || isnan(B[i][j]))
 				return false;
 			max_err = std::max(max_err, std::abs(B[i][j] - hmm.B[i][j]));
 		}
