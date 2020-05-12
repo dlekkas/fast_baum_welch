@@ -172,7 +172,7 @@ void perf_test_chrono(const std::string& impl_tag, compute_func2 baum_welch,
 
 
 bool IsValidImpl(compute_func impl) {
-	int n = 16, m = 32, o = 32;
+	int n = 64, m = 64, o = 128;
 
 	HMM base_model(m, n);
 	HMM test_model(base_model);
@@ -199,7 +199,7 @@ bool IsValidImpl(compute_func impl) {
 }
 
 bool IsValidImpl(compute_func2 impl) {
-	int n = 16, m = 32, o = 32;
+	int n = 64, m = 64, o = 128;
 
 	HMM base_model(m, n);
 	HMM test_model(base_model);

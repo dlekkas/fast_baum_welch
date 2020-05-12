@@ -3,8 +3,6 @@
 
 #include "../include/bw.h"
 
-#define MAX_ITER 5
-
 using namespace std;
 
 using Matrix_v = vector<vector<double>>;
@@ -44,6 +42,7 @@ void baum_welch(Matrix_v& transition, Matrix_v& emission, vector<double>& init_p
 	vector<double> scale_c(T);
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
+		fill(scale_c.begin(), scale_c.end(), 0.0);
 
 		Matrix_v fwd = forward(transition, emission, init_prob, observation, scale_c);
 		Matrix_v bwd = backward(transition, emission, init_prob, observation, scale_c);
