@@ -4,14 +4,18 @@
 #include <iostream>
 
 #include "hmm.h"
+#include "bw.h"
 
-using compute_func = void (*)(int, int, int, int*, double*, double**, double**,
-		double**, double**, double**, double***);
 
-using compute_func2 = void (*)(Matrix_v&, Matrix_v&, std::vector<double>&,
-		const std::vector<int>&);
+using compute_func  = decltype(&run_bw);
+using compute_func1 = decltype(&bw_loop_unroll);
+using compute_func2 = decltype(&baum_welch);
+
 
 void perf_test_rdtscp(const std::string& tag, compute_func baum_welch,
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+
+void perf_test_rdtscp(const std::string& tag, compute_func1 baum_welch,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
 
 void perf_test_rdtscp(const std::string& tag, compute_func2 baum_welch,
@@ -20,16 +24,18 @@ void perf_test_rdtscp(const std::string& tag, compute_func2 baum_welch,
 void perf_test_chrono(const std::string& tag, compute_func baum_welch,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
 
+void perf_test_chrono(const std::string& tag, compute_func1 baum_welch,
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+
 void perf_test_chrono(const std::string& tag, compute_func2 baum_welch,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
 
 
-bool IsValidImpl(compute_func impl, compute_func base);
-
 bool IsValidImpl(compute_func impl);
 
-bool IsValidImpl(compute_func2 impl);
+bool IsValidImpl(compute_func1 impl);
 
+bool IsValidImpl(compute_func2 impl);
 
 
 /* helper functions to preallocate/free memory needed for baum-welch */

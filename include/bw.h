@@ -15,6 +15,9 @@ void run_bw_basic_opts(int M, int N, int T, int* obs_sequence, double* pi, doubl
 void run_bw_opts_v2(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
 		double** fwd, double** backward, double** g, double*** chsi);
 
+void bw_loop_unroll(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
+		double** fwd, double **backward);
+
 void baum_welch(Matrix_v& transition, Matrix_v& emission, std::vector<double>& init_prob,
 		const std::vector<int>& observations);
 

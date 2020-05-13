@@ -11,7 +11,7 @@ using namespace std;
 inline void forward_backward(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
 
-    double sum = 0.0, acc = 0.0;
+    double sum = 0.0;
 
 
 	// ops = 2*M , mem = 4*M
@@ -31,11 +31,18 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
 
         sum = 0.0;
 	    for (int i = 0; i < M; i++) {
-            acc = 0.0;
-            for (int j = 0; j < M; j++) {
-                acc += forward[t-1][j] * A[j][i];
+            double acc1 = 0.0, acc2 = 0.0, acc3 = 0.0, acc4 = 0.0;
+			int j = 0;
+            for (; j < M-3; j+=4) {
+                acc1 += forward[t-1][j] * A[j][i];
+                acc2 += forward[t-1][j+1] * A[j+1][i];
+                acc3 += forward[t-1][j+2] * A[j+2][i];
+                acc4 += forward[t-1][j+3] * A[j+3][i];
 			}
-            forward[t][i] = B[observation_seq[t]][i] * acc;
+            for (; j < M; j++) {
+				acc1 += forward[t-1][j] * A[j][i];
+			}
+            forward[t][i] = B[observation_seq[t]][i] * (acc1 + acc2 + acc3 + acc4);
             sum += forward[t][i];
         }
 
@@ -52,11 +59,16 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
 	// ops = 3*T*M^2, mem = 3*T*M^2
     for (int t = T-2; t >= 0; t--) {
         for (int i = 0; i < M; i++) {
-            sum = 0.0;
-            for (int j = 0; j < M; j++) {
-                sum += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
+            double sum1 = 0.0, sum2 = 0.0;
+			int j = 0;
+            for (; j < M-1; j+=2) {
+                sum1 += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
+                sum2 += backward[t+1][j+1] * A[i][j+1] * B[observation_seq[t+1]][j+1];
 			}
-            backward[t][i] = sum*sc_factors[t];
+			for (; j < M; j++) {
+				sum1 += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
+			}
+            backward[t][i] = (sum1+sum2)*sc_factors[t];
         }
     }
 
@@ -77,11 +89,19 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
 		}
 
 		for (int j = 0; j < M; j++) {
-			double sum = 0.0;
-			for (int t = 0; t < T-1; t++) {
-                sum += (backward[t+1][j] * B[observation_seq[t+1]][j]) * forward[t][i];
+			double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, sum4 = 0.0;
+			int t = 0;
+			for (; t < T-4; t+=4) {
+                sum1 += (backward[t+1][j] * B[observation_seq[t+1]][j]) * forward[t][i];
+                sum2 += (backward[t+2][j] * B[observation_seq[t+2]][j]) * forward[t+1][i];
+                sum3 += (backward[t+3][j] * B[observation_seq[t+3]][j]) * forward[t+2][i];
+                sum4 += (backward[t+4][j] * B[observation_seq[t+4]][j]) * forward[t+3][i];
             }
-			A[i][j] *= sum / acc;
+			for (; t < T-1; t++) {
+				sum1 += (backward[t+1][j] * B[observation_seq[t+1]][j]) * forward[t][i];
+			}
+
+			A[i][j] *= (sum1 + sum2 + sum3 + sum4) / acc;
 		}
 
     }
@@ -97,21 +117,36 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
 
         for (int vk = 0; vk < N; vk++) {
 
-            double occurrences = 0.0;
-            for (int t = 0; t < T; t++) {
+            double acc1 = 0.0, acc2 = 0.0;
+			int t = 0;
+            for (; t < T-3; t+=4) {
                 if (observation_seq[t] == vk) {
-                    occurrences += (forward[t][i] * backward[t][i]) / sc_factors[t];
+                    acc1 += (forward[t][i] * backward[t][i]) / sc_factors[t];
+				}
+                if (observation_seq[t+1] == vk) {
+                    acc2 += (forward[t+1][i] * backward[t+1][i]) / sc_factors[t+1];
+				}
+                if (observation_seq[t+2] == vk) {
+                    acc1 += (forward[t+2][i] * backward[t+2][i]) / sc_factors[t+2];
+				}
+                if (observation_seq[t+3] == vk) {
+                    acc2 += (forward[t+3][i] * backward[t+3][i]) / sc_factors[t+3];
 				}
             }
-			B[vk][i] = occurrences / sum;
+			for (; t < T; t++) {
+				if (observation_seq[t] == vk) {
+					acc1 += (forward[t][i] * backward[t][i]) / sc_factors[t];
+				}
+			}
+			B[vk][i] = (acc1 + acc2) / sum;
         }
     }
 
 
 }
 
-void run_bw_opts_v2(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
-        double** forward, double** backward, double** g, double*** chsi) {
+void bw_loop_unroll(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
+        double** forward, double** backward) {
 
     double *sc_factors = (double *)malloc(T * sizeof(double));
 
