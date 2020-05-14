@@ -55,6 +55,8 @@ int main() {
 
 	vector<Implementation_c> implementations_opt {
 		{"C-like Loop Unroll", &bw_loop_unroll},
+		{"C-like Loop Unroll Opts", &bw_loop_unroll_opt},
+
 	};
 
 
