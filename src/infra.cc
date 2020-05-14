@@ -10,7 +10,6 @@
 #include "../include/infra.h"
 #include "../include/bw.h"
 
-
 void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV) {
 
@@ -35,8 +34,9 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 		}
 		uint64_t end = stop_tsc();
 		uint64_t cycles = (end - start) / (double) n_runs;
+
 		forward = free_2d(forward, observations.size(), model.M);
-		backward = free_2d(backward, model.M, observations.size());
+		backward = free_2d(backward, observations.size(), model.M);
 		g = free_2d(g, model.M, observations.size());
 		chsi = free_3d(chsi, model.M, model.M, observations.size());
 
@@ -78,7 +78,7 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func1 baum_welch,
 		uint64_t end = stop_tsc();
 		uint64_t cycles = (end - start) / (double) n_runs;
 		forward = free_2d(forward, observations.size(), model.M);
-		backward = free_2d(backward, model.M, observations.size());
+		backward = free_2d(backward, observations.size(), model.M);
 
 		cycles_list.emplace_back(cycles);
 	}
@@ -157,7 +157,7 @@ void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
 			<std::chrono::milliseconds>(end - begin).count() / n_runs;
 
 		forward = free_2d(forward, observations.size(), model.M);
-		backward = free_2d(backward, model.M, observations.size());
+		backward = free_2d(backward, observations.size(), model.M);
 		g = free_2d(g, model.M, observations.size());
 		chsi = free_3d(chsi, model.M, model.M, observations.size());
 
@@ -201,7 +201,7 @@ void perf_test_chrono(const std::string& impl_tag, compute_func1 baum_welch,
 			<std::chrono::milliseconds>(end - begin).count() / n_runs;
 
 		forward = free_2d(forward, observations.size(), model.M);
-		backward = free_2d(backward, model.M, observations.size());
+		backward = free_2d(backward, observations.size(), model.M);
 
 		time_list.emplace_back(duration_us);
 	}
