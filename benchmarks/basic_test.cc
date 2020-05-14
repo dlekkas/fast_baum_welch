@@ -25,7 +25,7 @@ using Implementation_cpp = tuple<string, compute_func2>;
 int main() {
 
 	vector<Implementation_cpp> implementations_new {
-		//{"C++ Baseline", &baum_welch},
+		{"C++ Baseline", &baum_welch},
 		{"C++ Basic Opts", &baum_welch_opts}
 	};
 
@@ -38,8 +38,8 @@ int main() {
 	}
 
 	vector<Implementation> implementations {
-		//{"C-like Baseline", &run_bw},
-		//{"C-like Basic Opts", &run_bw_basic_opts},
+		{"C-like Baseline", &run_bw},
+		{"C-like Basic Opts", &run_bw_basic_opts},
 		{"C-like More Opts", &run_bw_opts_v2},
 	};
 

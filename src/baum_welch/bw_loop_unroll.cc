@@ -101,10 +101,18 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
 				sum1 += (backward[t+1][j] * B[observation_seq[t+1]][j]) * forward[t][i];
 			}
 
-			A[i][j] *= (sum1 + sum2 + sum3 + sum4) / acc;
+			A[i][j] = (sum1 + sum2 + sum3 + sum4) * A[i][j] / acc;
 		}
 
     }
+
+	/* Significant optimization to get rid of conditional addition with
+	 * extremely bad branch prediction patterns (highly unlikely to
+	 * predict its outcome */
+	vector<vector<int>> obs_dict(N);
+	for (int t = 0; t < T; t++) {
+		obs_dict[observation_seq[t]].push_back(t);
+	}
 
 
 	// ops = 3*T*M*N, mem = 3*T*M^2
@@ -115,30 +123,12 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
             sum += (forward[t][i] / sc_factors[t]) * backward[t][i];
 		}
 
-        for (int vk = 0; vk < N; vk++) {
-
-            double acc1 = 0.0, acc2 = 0.0;
-			int t = 0;
-            for (; t < T-3; t+=4) {
-                if (observation_seq[t] == vk) {
-                    acc1 += (forward[t][i] * backward[t][i]) / sc_factors[t];
-				}
-                if (observation_seq[t+1] == vk) {
-                    acc2 += (forward[t+1][i] * backward[t+1][i]) / sc_factors[t+1];
-				}
-                if (observation_seq[t+2] == vk) {
-                    acc1 += (forward[t+2][i] * backward[t+2][i]) / sc_factors[t+2];
-				}
-                if (observation_seq[t+3] == vk) {
-                    acc2 += (forward[t+3][i] * backward[t+3][i]) / sc_factors[t+3];
-				}
-            }
-			for (; t < T; t++) {
-				if (observation_seq[t] == vk) {
-					acc1 += (forward[t][i] * backward[t][i]) / sc_factors[t];
-				}
+        for (int j = 0; j < N; j++) {
+            double acc1 = 0.0;
+			for (const auto& t: obs_dict[j]) {
+				acc1 += (forward[t][i] * backward[t][i]) / sc_factors[t];
 			}
-			B[vk][i] = (acc1 + acc2) / sum;
+			B[j][i] = acc1 / sum;
         }
     }
 
