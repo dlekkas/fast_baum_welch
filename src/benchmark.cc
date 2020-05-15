@@ -35,9 +35,9 @@ void Benchmark::BeautyPrint(ostream& os) {
 	os << "--------------- " << impl_tag << "--------------- " << endl;
 	os << "[" << metric_tag << "] (MEAN): "<< stats.mean << endl;
 	os << "[" << metric_tag << "] (MEDIAN): "<< stats.median << endl;
-	os << "[" << metric_tag << "] (VARIANCE): "<< stats.median << endl;
+	os << "[" << metric_tag << "] (VARIANCE): "<< stats.variance << endl;
 	os << "[" << metric_tag << "] (MIN): " << stats.min_v << endl;
-	os << "[" << metric_tag << "] (MIN): " << stats.max_v << endl;
+	os << "[" << metric_tag << "] (MAX): " << stats.max_v << endl;
 
 }
 
