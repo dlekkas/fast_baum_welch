@@ -20,7 +20,7 @@ Statistics Benchmark::CalculateStatistics() {
 	stats.min_v = measurements.front();
 	stats.max_v = measurements.back();
 
-	int sum = 0;
+	uint64_t sum = 0;
 	for (auto x: measurements) {
 		sum += (stats.mean-x)*(stats.mean-x);
 	}
