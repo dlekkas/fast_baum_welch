@@ -13,22 +13,28 @@ using compute_func2 = decltype(&baum_welch);
 
 
 void perf_test_rdtscp(const std::string& tag, compute_func baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
+		std::string out_file = "");
 
 void perf_test_rdtscp(const std::string& tag, compute_func1 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
+		std::string out_file = "");
 
 void perf_test_rdtscp(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
+		std::string out_file = "");
 
 void perf_test_chrono(const std::string& tag, compute_func baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
+		std::string out_file = "");
 
 void perf_test_chrono(const std::string& tag, compute_func1 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
+		std::string out_file = "");
 
 void perf_test_chrono(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false);
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
+		std::string out_file = "");
 
 
 bool IsValidImpl(compute_func impl);

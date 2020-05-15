@@ -15,7 +15,7 @@ def plot(plot_time, input_file, save):
             if (not(tokens[0] in times)):
                 times[tokens[0]] = {}
             key_pair = (int(tokens[2]), int(tokens[3]))
-            times[tokens[0]][key_pair] = float(tokens[-1])
+            times[tokens[0]][key_pair] = float(tokens[5])
             line = fp.readline()
 
     for k in times:
@@ -72,4 +72,3 @@ if __name__ == '__main__':
     else:
         print ('Usage: python preprocess.py <time/cycles>')
         exit()
-

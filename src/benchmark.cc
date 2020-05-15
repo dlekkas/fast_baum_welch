@@ -44,7 +44,7 @@ void Benchmark::BeautyPrint(ostream& os) {
 void Benchmark::CSVPrint(const string& file) {
 	ofstream ofs(file, ios_base::app);
 	ofs << impl_tag << "," << metric_tag << "," << N << ","
-		<< M << "," << O << "," << stats.mean << endl;
+		<< M << "," << O << "," << stats.mean << "," << bw_iterations << endl;
 }
 
 void Benchmark::CompactPrint(ostream& os) {
@@ -53,13 +53,12 @@ void Benchmark::CompactPrint(ostream& os) {
 
 
 Benchmark::Benchmark(const vector<double>& values, const string& i_tag,
-		const string& m_tag, int n, int m, int o):
+		const string& m_tag, int n, int m, int o, int bw_iters):
 	N(n), M(m), O(o),
+	bw_iterations(bw_iters),
 	measurements(values),
 	impl_tag(i_tag),
 	metric_tag(m_tag)
 {
 	CalculateStatistics();
 }
-
-

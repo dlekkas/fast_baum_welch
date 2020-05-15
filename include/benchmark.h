@@ -18,6 +18,7 @@ class Benchmark {
 	public:
 
 		int N; int M; int O;
+		int bw_iterations;
 
 		std::vector<double> measurements;
 		std::string impl_tag;
@@ -26,7 +27,7 @@ class Benchmark {
 		Statistics stats;
 
 		Benchmark(const std::vector<double>& values, const std::string& i_tag,
-				const std::string& m_tag, int n, int m, int o);
+				const std::string& m_tag, int n, int m, int o, int bw_iters);
 
 		Benchmark(const Benchmark& bench) = default;
 
@@ -40,10 +41,6 @@ class Benchmark {
 
 		void CSVPrint(const std::string& file);
 
-
 };
-
-
-
 
 #endif

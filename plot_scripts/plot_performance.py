@@ -14,16 +14,18 @@ def compute_flops(M, N, T, iterations):
     flops = flops_per_it*iterations
     return flops
 
-def plot(input_file, T, iterations):
+def plot(input_file):
     times = {}
     with open(input_file) as fp:
         line = fp.readline()
+        T = int(tokens[5])
+        iterations = int(tokens[6])
         while line:
             tokens = line.split(",")
             if (not(tokens[0] in times)):
                 times[tokens[0]] = {}
             key_pair = (int(tokens[2]), int(tokens[3]))
-            times[tokens[0]][key_pair] = float(tokens[-1])
+            times[tokens[0]][key_pair] = float(tokens[5])
             line = fp.readline()
 
     for k in times:
@@ -69,8 +71,7 @@ def plot(input_file, T, iterations):
     fig.savefig("perf.png")
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print ('Usage: python preprocess.py <T> <MAX_ITERATIONS>')
+    if len(sys.argv) != 1:
+        print ('Usage: python preprocess.py')
         exit()
-    plot("../build/results_cycles.txt", int(sys.argv[1]), int(sys.argv[2]))
-
+    plot("../build/results_cycles.txt")

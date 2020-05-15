@@ -11,7 +11,7 @@
 #include "../include/bw.h"
 
 void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> cycles_list;
@@ -43,11 +43,10 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 		cycles_list.emplace_back(cycles);
 	}
 
-
-	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size());
+	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size(), MAX_ITERATIONS);
 
 	if (to_CSV) {
-		bench.CSVPrint("results_cycles.txt");
+		bench.CSVPrint(out_file);
 	} else {
 		bench.CompactPrint(xout);
 	}
@@ -56,7 +55,7 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func baum_welch,
 
 
 void perf_test_rdtscp(const std::string& impl_tag, compute_func1 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> cycles_list;
@@ -83,19 +82,19 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func1 baum_welch,
 		cycles_list.emplace_back(cycles);
 	}
 
-
-	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size());
+	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size(), MAX_ITERATIONS);
 
 	if (to_CSV) {
-		bench.CSVPrint("results_cycles.txt");
+		bench.CSVPrint(out_file);
 	} else {
 		bench.CompactPrint(xout);
 	}
 
 }
 
+
 void perf_test_rdtscp(const std::string& impl_tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> cycles_list;
@@ -117,23 +116,19 @@ void perf_test_rdtscp(const std::string& impl_tag, compute_func2 baum_welch,
 		cycles_list.emplace_back(cycles);
 	}
 
-	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size());
-
+	Benchmark bench(cycles_list, impl_tag, "cycles", N, M, observations.size(), MAX_ITERATIONS);
 
 	if (to_CSV) {
-		bench.CSVPrint("results_cycles.txt");
+		bench.CSVPrint(out_file);
 	} else {
 		bench.CompactPrint(xout);
 	}
 
-
 }
 
 
-
-
 void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> time_list;
@@ -164,13 +159,11 @@ void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
 		time_list.emplace_back(duration_us);
 	}
 
-
-
 	Benchmark bench(time_list, impl_tag, "msec", base_model.N, base_model.M,
-			observations.size());
+			observations.size(), MAX_ITERATIONS);
 
 	if (to_CSV) {
-		bench.CSVPrint("results_time.txt");
+		bench.CSVPrint(out_file);
 	} else {
 		bench.CompactPrint(xout);
 	}
@@ -179,7 +172,7 @@ void perf_test_chrono(const std::string& impl_tag, compute_func baum_welch,
 
 
 void perf_test_chrono(const std::string& impl_tag, compute_func1 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> time_list;
@@ -206,20 +199,18 @@ void perf_test_chrono(const std::string& impl_tag, compute_func1 baum_welch,
 		time_list.emplace_back(duration_us);
 	}
 
-
-
 	Benchmark bench(time_list, impl_tag, "msec", base_model.N, base_model.M,
-			observations.size());
+			observations.size(), MAX_ITERATIONS);
 
 	if (to_CSV) {
-		bench.CSVPrint("results_time.txt");
+		bench.CSVPrint(out_file);
 	} else {
 		bench.CompactPrint(xout);
 	}
 
 }
 void perf_test_chrono(const std::string& impl_tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV) {
+		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> time_list;
@@ -240,10 +231,10 @@ void perf_test_chrono(const std::string& impl_tag, compute_func2 baum_welch,
 	}
 
 	Benchmark bench(time_list, impl_tag, "msec", base_model.N, base_model.M,
-			observations.size());
+			observations.size(), MAX_ITERATIONS);
 
 	if (to_CSV) {
-		bench.CSVPrint("results_time.txt");
+		bench.CSVPrint(out_file);
 	} else {
 		bench.CompactPrint(xout);
 	}
@@ -325,10 +316,6 @@ bool IsValidImpl(compute_func2 impl) {
 }
 
 
-
-
-
-
 double** allocate_2d(int M, int T) {
 
 	double** ar = (double**)malloc(M * sizeof(double*));
@@ -336,6 +323,7 @@ double** allocate_2d(int M, int T) {
         ar[i] = (double*)calloc(T, sizeof(double));
     return ar;
 }
+
 
 double*** allocate_3d(int M, int K, int T) {
 
@@ -347,6 +335,7 @@ double*** allocate_3d(int M, int K, int T) {
 	}
 	return ar;
 }
+
 
 double** free_2d(double** ar, int M, int T) {
 
