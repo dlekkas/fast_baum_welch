@@ -18,14 +18,14 @@ def plot(input_file):
     times = {}
     with open(input_file) as fp:
         line = fp.readline()
-        T = int(tokens[5])
-        iterations = int(tokens[6])
         while line:
             tokens = line.split(",")
             if (not(tokens[0] in times)):
                 times[tokens[0]] = {}
             key_pair = (int(tokens[2]), int(tokens[3]))
             times[tokens[0]][key_pair] = float(tokens[5])
+            T = int(tokens[4])
+            iterations = int(tokens[6])
             line = fp.readline()
 
     for k in times:
