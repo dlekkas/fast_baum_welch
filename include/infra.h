@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "hmm.h"
+#include "baum_welch.h"
 #include "bw.h"
 
 
@@ -12,36 +13,15 @@ using compute_func1 = decltype(&bw_loop_unroll);
 using compute_func2 = decltype(&baum_welch);
 
 
-void perf_test_rdtscp(const std::string& tag, compute_func baum_welch,
+void perf_test_rdtscp(const std::string& tag, BaumWelch& impl,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
 		std::string out_file = "");
 
-void perf_test_rdtscp(const std::string& tag, compute_func1 baum_welch,
+void perf_test_chrono(const std::string& tag, BaumWelch& impl,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
 		std::string out_file = "");
 
-void perf_test_rdtscp(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
-		std::string out_file = "");
-
-void perf_test_chrono(const std::string& tag, compute_func baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
-		std::string out_file = "");
-
-void perf_test_chrono(const std::string& tag, compute_func1 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
-		std::string out_file = "");
-
-void perf_test_chrono(const std::string& tag, compute_func2 baum_welch,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV = false,
-		std::string out_file = "");
-
-
-bool IsValidImpl(compute_func impl);
-
-bool IsValidImpl(compute_func1 impl);
-
-bool IsValidImpl(compute_func2 impl);
+bool IsValidImpl(BaumWelch& impl);
 
 
 /* helper functions to preallocate/free memory needed for baum-welch */

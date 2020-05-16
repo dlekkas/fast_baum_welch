@@ -10,6 +10,7 @@
 using Matrix = double**;
 
 using Matrix_v = std::vector<std::vector<double>>;
+using DVector = std::vector<double>;
 
 
 class HMM {
@@ -20,6 +21,9 @@ class HMM {
 
 		HMM(const HMM& hmm);
 
+		HMM(Matrix_v trans, Matrix_v emis, DVector init_prob);
+
+
 		HMM(const std::string& input_file);
 
 		~HMM();
@@ -28,7 +32,7 @@ class HMM {
 		void InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
 				const std::vector<double>& init_prob);
 
-		void InitParamsFromFile(const std::string& input_file);
+		//void InitParamsFromFile(const std::string& input_file);
 
 		void InitParamsRandom();
 
@@ -41,22 +45,12 @@ class HMM {
         // number of observations
 		int N;
 
-        // initial state vector
-		std::vector<double> pi;
-
-        // state transition matrix
-		Matrix A;
-
-        // emission matrix
-        Matrix B;
-
 		Matrix_v transition;
 
 		Matrix_v emission;
 
-	private:
-
-		void alloc_mem();
+        // initial state vector
+		DVector pi;
 
 };
 

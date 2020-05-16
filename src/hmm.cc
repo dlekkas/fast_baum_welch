@@ -7,6 +7,7 @@
 #include "../include/hmm.h"
 
 
+/*
 void HMM::InitParamsFromFile(const std::string& input_file) {
 
     std::ifstream ifs {input_file};
@@ -34,7 +35,6 @@ void HMM::InitParamsFromFile(const std::string& input_file) {
 
 	std::getline(ifs, line);
 
-    B = new double*[M];
 	for (auto i = 0; i < M; i++) {
         B[i] = new double[N];
 		std::getline(ifs, line); std::istringstream buf(line);
@@ -43,6 +43,7 @@ void HMM::InitParamsFromFile(const std::string& input_file) {
 	}
 
 }
+*/
 
 
 void HMM::InitParamsRandom() {
@@ -57,17 +58,6 @@ void HMM::InitParamsRandom() {
 	for (auto i = 0; i < N; i++) {
 		emission.emplace_back(symmetric_dirichlet_sample(M));
 	}
-
-	alloc_mem();
-
-	for (auto i = 0; i < N; i++) {
-		std::copy(emission[i].begin(), emission[i].end(), B[i]);
-	}
-
-
-	for (auto i = 0; i < M; i++) {
-		std::copy(transition[i].begin(), transition[i].end(), A[i]);
-	}
 }
 
 
@@ -76,41 +66,33 @@ void HMM::InitParamsCustom(const Matrix_v& trans, const Matrix_v& emis,
 	transition = trans;
 	emission = emis;
 	pi = init_prob;
-
-	alloc_mem();
-	for (auto i = 0; i < M; i++) {
-		std::copy(transition[i].begin(), transition[i].end(), A[i]);
-	}
-
-	for (auto i = 0; i < N; i++) {
-		std::copy(emission[i].begin(), emission[i].end(), B[i]);
-	}
 }
+
 
 
 
 bool HMM::IsSimilar(const HMM& hmm, const double eps) {
 
 	double max_err = 0.0;
-	for (auto i = 0; i < M; i++) {
+	for (size_t i = 0; i < pi.size(); i++) {
 		if (isnan(hmm.pi[i]) || isnan(pi[i]))
 			return false;
 		max_err = std::max(max_err, std::abs(pi[i] - hmm.pi[i]));
 	}
 
-	for (auto i = 0; i < M; i++) {
-		for (auto j = 0; j < M; j++) {
-			if (isnan(hmm.A[i][j]) || isnan(A[i][j]))
+	for (size_t i = 0; i < transition.size(); i++) {
+		for (size_t j = 0; j < transition[0].size(); j++) {
+			if (isnan(hmm.transition[i][j]) || isnan(transition[i][j]))
 				return false;
-			max_err = std::max(max_err, std::abs(A[i][j] - hmm.A[i][j]));
+			max_err = std::max(max_err, std::abs(transition[i][j] - hmm.transition[i][j]));
 		}
 	}
 
-	for (auto i = 0; i < N; i++) {
-		for (auto j = 0; j < M; j++) {
-			if (isnan(hmm.B[i][j]) || isnan(B[i][j]))
+	for (size_t i = 0; i < emission.size(); i++) {
+		for (size_t j = 0; j < emission[0].size(); j++) {
+			if (isnan(hmm.emission[i][j]) || isnan(emission[i][j]))
 				return false;
-			max_err = std::max(max_err, std::abs(B[i][j] - hmm.B[i][j]));
+			max_err = std::max(max_err, std::abs(emission[i][j] - hmm.emission[i][j]));
 		}
 	}
 
@@ -120,6 +102,7 @@ bool HMM::IsSimilar(const HMM& hmm, const double eps) {
 
 
 
+/*
 void HMM::alloc_mem() {
 	for (auto i = 0; i < M; i++) {
 		A[i] = new double[M];
@@ -129,45 +112,39 @@ void HMM::alloc_mem() {
 		B[i] = new double[M];
 	}
 }
+*/
 
 
 HMM::HMM(int states, int emissions):
 	M(states),
-	N(emissions),
-	A(new double*[states]),
-	B(new double*[emissions])
+	N(emissions)
 {
 	InitParamsRandom();
 }
 
 HMM::HMM(const std::string& input_file):
-	M(0), N(0), A(nullptr), B(nullptr) {
-	InitParamsFromFile(input_file);
+	M(0), N(0) {
+	//InitParamsFromFile(input_file);
 }
 
+HMM::HMM(Matrix_v trans, Matrix_v emis, DVector init_prob):
+	transition(trans),
+	emission(emis),
+	pi(init_prob)
+{}
 
 HMM::HMM(const HMM& hmm):
 	M(hmm.M),
 	N(hmm.N),
-	pi(hmm.pi),
-	A(new double*[hmm.M]),
-	B(new double*[hmm.N]),
 	transition(hmm.transition),
-	emission(hmm.emission)
-{
-	alloc_mem();
-  	for (auto i = 0; i < hmm.M; i++) {
-		std::copy(transition[i].begin(), transition[i].end(), A[i]);
-	}
+	emission(hmm.emission),
+	pi(hmm.pi)
+{}
 
-  	for (auto i = 0; i < hmm.N; i++) {
-		std::copy(emission[i].begin(), emission[i].end(), B[i]);
-	}
-
-}
+HMM::~HMM() {}
 
 
-
+/*
 HMM::~HMM() {
 	if (A != nullptr) {
 		for (int i = 0; i < M; i++) {
@@ -185,3 +162,4 @@ HMM::~HMM() {
 		delete[] B;
 	}
 }
+*/
