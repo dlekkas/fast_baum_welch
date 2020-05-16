@@ -5,7 +5,7 @@
 #include <iostream>
 #include <assert.h>
 #include <math.h>
-#include "../include/bw.h"
+#include "../include/baum_welch.h"
 
 static int it=0;
 
@@ -128,13 +128,13 @@ bool update_and_check(double** forward, double** backward, int M, int N, int T,
     return converged;
 }
 
-void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
-        double** forward, double** backward, double** g, double*** chsi) {
+
+void BaumWelchCBasic::operator()() {
 
     int iterations = 0;
     while (iterations < MAX_ITERATIONS) { // SET TO MAX ITER
-        forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence);
-        update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, g, chsi);
+        forward_backward(fwd, bwd, M, N, T, pi, A, B, obs);
+        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, gamma, chsi);
 
         iterations++;
         it++;

@@ -32,11 +32,11 @@ class BaumWelchC: public BaumWelch {
 
 		virtual void operator()() = 0;
 
-		void Load(HMM& hmm, std::vector<int>& obs_seq);
+		virtual void Load(HMM& hmm, std::vector<int>& obs_seq);
 
 		HMM GetHMM();
 
-		~BaumWelchC();
+		virtual ~BaumWelchC();
 
 
 	protected:
@@ -57,11 +57,52 @@ class BaumWelchC: public BaumWelch {
 
 };
 
-
 class BaumWelchCLoopUnroll: public BaumWelchC {
 	public:
 		void operator()();
 };
+
+class BaumWelchCLoopUnroll0: public BaumWelchC {
+	public:
+		void operator()();
+};
+
+
+
+class BaumWelchCExtended: public BaumWelchC {
+
+	public:
+		void operator()() = 0;
+
+		virtual void Load(HMM& hmm, std::vector<int>& obs_seq);
+
+		virtual ~BaumWelchCExtended();
+
+	protected:
+
+		double** gamma;
+
+		double*** chsi;
+
+};
+
+
+class BaumWelchCBasic: public BaumWelchCExtended {
+	public:
+		void operator()();
+};
+
+class BaumWelchCBasicOpts: public BaumWelchCExtended {
+	public:
+		void operator()();
+};
+
+class BaumWelchCOptsV2: public BaumWelchCExtended {
+	public:
+		void operator()();
+};
+
+
 
 
 
@@ -111,5 +152,8 @@ class BaumWelchCppBaseline: public BaumWelchCpp {
 	public:
 		void operator()();
 };
+
+
+
 
 #endif

@@ -43,6 +43,14 @@ double** allocate_2d(int X, int Y) {
 	return ptr;
 }
 
+double*** allocate_3d(int X, int Y, int Z) {
+	double*** ptr = new double**[X];
+	for (auto i = 0; i < X; i++) {
+		ptr[i] = allocate_2d(Y, Z);
+	}
+	return ptr;
+}
+
 
 
 void free_1d(double* arr) {
@@ -61,6 +69,15 @@ void free_2d(double** arr, int X) {
 }
 
 
+void free_3d(double*** arr, int X, int Y) {
+	if (arr != nullptr) {
+		for (auto i = 0; i < X; i++) {
+			free_2d(arr[i], Y);
+		}
+	}
+}
+
+
 
 HMM BaumWelchC::GetHMM() {
 	vector<vector<double>> tr = convert_arr_to_vec(A, M, M);
@@ -69,8 +86,6 @@ HMM BaumWelchC::GetHMM() {
 	HMM res(tr, em, init_prob);
 	return res;
 }
-
-
 
 void BaumWelchC::Load(HMM& hmm, vector<int>& obs_seq) {
 	M = hmm.transition.size();
@@ -93,15 +108,23 @@ void BaumWelchC::Load(HMM& hmm, vector<int>& obs_seq) {
 	bwd = allocate_2d(T, M);
 }
 
-
 BaumWelchC::~BaumWelchC() {
 	free_2d(A, M);
 	free_2d(B, N);
 	free_1d(pi);
-	delete[] obs;
-
 	free_2d(fwd, T);
 	free_2d(bwd, T);
+	delete[] obs;
 }
 
 
+void BaumWelchCExtended::Load(HMM& hmm, vector<int>& obs_seq) {
+	BaumWelchC::Load(hmm, obs_seq);
+	gamma = allocate_2d(M, T);
+	chsi = allocate_3d(M, M, T);
+}
+
+BaumWelchCExtended::~BaumWelchCExtended() {
+	free_2d(gamma, M);
+	free_3d(chsi, M, M);
+}

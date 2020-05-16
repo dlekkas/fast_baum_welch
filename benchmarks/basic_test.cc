@@ -26,7 +26,12 @@ int main() {
 	vector<Implementation> implementations {
 		{"C++ baseline", new BaumWelchCppBaseline()},
 		{"C++ opts", new BaumWelchCppOpts()},
-		{"C loop unrolling", new BaumWelchCLoopUnroll()}
+		{"C basic", new BaumWelchCBasic()},
+		{"C basic opts", new BaumWelchCBasicOpts()},
+		{"C more opts", new BaumWelchCOptsV2()},
+		//{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
+		{"C loop unrolling opt", new BaumWelchCLoopUnroll()}
+
 	};
 
 	for (auto [impl_tag, bw_func]: implementations) {

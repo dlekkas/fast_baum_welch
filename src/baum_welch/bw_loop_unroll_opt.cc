@@ -4,7 +4,7 @@
 */
 #include <iostream>
 #include <assert.h>
-#include "../include/bw.h"
+#include "../include/baum_welch.h"
 
 using namespace std;
 
@@ -134,15 +134,14 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
 
 }
 
-void bw_loop_unroll_opt(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
-        double** forward, double** backward) {
 
-    //double *sc_factors = (double *)malloc(T * sizeof(double));
+void BaumWelchCLoopUnroll0::operator()() {
+
     double *sc_factors_inverse = (double *)malloc(T * sizeof(double));
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
-        forward_backward(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors_inverse);
-        update_and_check(forward, backward, M, N, T, pi, A, B, obs_sequence, sc_factors_inverse);
+        forward_backward(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors_inverse);
+        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors_inverse);
 
     }
 
