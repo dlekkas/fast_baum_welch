@@ -12,7 +12,7 @@
 
 
 
-void perf_test_rdtscp(const std::string& impl_tag, BaumWelch& impl,
+void perf_test_rdtscp(const std::string& impl_tag, BaumWelch* impl,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
@@ -22,11 +22,11 @@ void perf_test_rdtscp(const std::string& impl_tag, BaumWelch& impl,
 
 	HMM base_model(M, N);
 	for (auto i = 0; i < n_iter; i++) {
-		impl.Load(base_model, observations);
+		impl->Load(base_model, observations);
 
 		uint64_t start = start_tsc();
 		for (auto j = 0; j < n_runs; j++) {
-			impl();
+			(*impl)();
 		}
 		uint64_t end = stop_tsc();
 		uint64_t cycles = (end - start) / (double) n_runs;
@@ -45,7 +45,7 @@ void perf_test_rdtscp(const std::string& impl_tag, BaumWelch& impl,
 }
 
 
-void perf_test_chrono(const std::string& impl_tag, BaumWelch& impl,
+void perf_test_chrono(const std::string& impl_tag, BaumWelch* impl,
 		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
@@ -53,11 +53,11 @@ void perf_test_chrono(const std::string& impl_tag, BaumWelch& impl,
 
 	HMM base_model(M, N);
 	for (auto i = 0; i < n_iter; i++) {
-		impl.Load(base_model, observations);
+		impl->Load(base_model, observations);
 
 		auto begin = std::chrono::steady_clock::now();
 		for (auto j = 0; j < n_runs; j++) {
-			impl();
+			(*impl)();
 		}
 		auto end = std::chrono::steady_clock::now();
 		auto duration_us = std::chrono::duration_cast
@@ -82,18 +82,14 @@ bool IsValidImpl(BaumWelch* impl) {
 	BaumWelchCppBaseline base_impl;
 	int n = 64, m = 64, o = 128;
 
-	HMM base_model(m, n);
-	HMM test_model(base_model);
-
 	std::vector<int> obs = uniform_emission_sample(o, n);
+	HMM base_model(m, n);
 
-	impl->Load(test_model, obs);
+	impl->Load(base_model, obs);
 	(*impl)();
 	HMM test_hmm = impl->GetHMM();
 
-
 	base_impl.Load(base_model, obs);
-
 	base_impl();
 	HMM base_hmm = base_impl.GetHMM();
 

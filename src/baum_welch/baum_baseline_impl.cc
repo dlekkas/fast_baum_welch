@@ -1,7 +1,6 @@
-#include <iostream>
 #include <vector>
+#include "../include/bw_baseline.h"
 
-#include "../include/bw.h"
 
 using namespace std;
 
@@ -21,15 +20,10 @@ static void expectation_step(const Matrix_v&, const Matrix_v&, const Matrix_v&,
 
 
 
-
-
-void baum_welch(Matrix_v& transition, Matrix_v& emission, vector<double>& init_prob,
-		const vector<int>& observation) {
+void BaumWelchCppBaseline::operator()() {
 
 	int T = observation.size();
 	int n_states = transition.size();
-
-
 
 	// probability of being in state `i` at time `t` and state `j` at time `t+1`,
 	// given the observation sequence and HMM model
@@ -54,7 +48,6 @@ void baum_welch(Matrix_v& transition, Matrix_v& emission, vector<double>& init_p
 		maximization_step(transition, emission, init_prob, observation, gamma, ksi);
 	}
 
-
 	#ifdef DEBUG
 		cout << endl << "Transition matrix" << endl;
 		for (auto row: transition) {
@@ -73,7 +66,6 @@ void baum_welch(Matrix_v& transition, Matrix_v& emission, vector<double>& init_p
 		cout << endl;
 	#endif
 }
-
 
 
 /* calculate the expected state occupancy count and the expected

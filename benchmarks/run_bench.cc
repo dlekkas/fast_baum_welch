@@ -11,28 +11,18 @@
 using namespace std;
 
 using InputParams= tuple<int, int, int>;
-using Implementation = tuple<string, compute_func>;
+using Implementation = tuple<string, BaumWelch*>;
 
 void run_benchmarks(const vector<InputParams> &inputs_var_M, const vector<Implementation> &implementations,
 		const string &results_file_cycles, const string &results_file_time) {
 
 	for (const auto& [M, N, S]: inputs_var_M) {
 		std::cout << "M: " << M << ", N: " << N << ", S: " << S << std::endl;
-		// Measurements regarding the C++ baseline implementation
-		perf_test_rdtscp("C++ Baseline", &baum_welch, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles);
-		perf_test_chrono("C++ Baseline", &baum_welch, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_time);
-
 		// Measurements regarding all the C-like implementations
-		for (const auto& [impl_tag, bw_func]: implementations) {
+		for (const auto [impl_tag, bw_func]: implementations) {
 			perf_test_rdtscp(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles);
 			perf_test_chrono(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_time);
 		}
-
-		// Measurements regarding the C++ baseline implementation
-		perf_test_rdtscp("C++ Baseline Opts", &baum_welch_opts, M, N, S, N_RUNS, N_ITER, std::cout, true,
-			results_file_cycles);
-		perf_test_chrono("C++ Baseline Opts", &baum_welch_opts, M, N, S, N_RUNS, N_ITER, std::cout, true,
-			results_file_time);
 	}
 }
 
@@ -40,8 +30,11 @@ int main() {
 
 	// entry: { <implementation-tag>, <baum-welch-function> }
 	vector<Implementation> implementations {
-		{"C-like Baseline", &run_bw},
-		{"Basic Opts", &run_bw_basic_opts}
+		{"C++ Baseline", new BaumWelchCppBaseline()},
+		{"C-like Baseline", new BaumWelchCBasic()},
+		{"C Basic Opts", new BaumWelchCBasicOpts()},
+		{"C More Opts", new BaumWelchCOptsV2()},
+		{"C Loop Unroll", new BaumWelchCLoopUnroll()}
 	};
 
 	// entry: { <n-states>, <n-emissions>, <observation-length> }
