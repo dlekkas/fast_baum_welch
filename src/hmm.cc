@@ -102,17 +102,6 @@ bool HMM::IsSimilar(const HMM& hmm, const double eps) {
 
 
 
-/*
-void HMM::alloc_mem() {
-	for (auto i = 0; i < M; i++) {
-		A[i] = new double[M];
-	}
-
-	for (auto i = 0; i < N; i++) {
-		B[i] = new double[M];
-	}
-}
-*/
 
 
 HMM::HMM(int states, int emissions):
@@ -142,24 +131,3 @@ HMM::HMM(const HMM& hmm):
 {}
 
 HMM::~HMM() {}
-
-
-/*
-HMM::~HMM() {
-	if (A != nullptr) {
-		for (int i = 0; i < M; i++) {
-			delete[] A[i];
-		}
-		delete[] A;
-	}
-
-
-
-	if (B != nullptr) {
-		for (int i = 0; i < N; i++) {
-			delete[] B[i];
-		}
-		delete[] B;
-	}
-}
-*/

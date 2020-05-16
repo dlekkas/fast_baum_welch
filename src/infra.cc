@@ -8,8 +8,7 @@
 #include "../include/tsc_x86.h"
 #include "../include/benchmark.h"
 #include "../include/infra.h"
-#include "../include/bw.h"
-#include "../include/bw_baseline.h"
+#include "../include/baum_welch.h"
 
 
 
@@ -79,70 +78,24 @@ void perf_test_chrono(const std::string& impl_tag, BaumWelch& impl,
 
 
 
-bool IsValidImpl(BaumWelch& impl) {
-	BaumWelchBaseline base_impl;
+bool IsValidImpl(BaumWelch* impl) {
+	BaumWelchCppBaseline base_impl;
 	int n = 64, m = 64, o = 128;
 
 	HMM base_model(m, n);
+	HMM test_model(base_model);
 
 	std::vector<int> obs = uniform_emission_sample(o, n);
 
-	impl.Load(base_model, obs);
-	impl();
-	HMM test_hmm = impl.GetHMM();
+	impl->Load(test_model, obs);
+	(*impl)();
+	HMM test_hmm = impl->GetHMM();
+
 
 	base_impl.Load(base_model, obs);
+
 	base_impl();
 	HMM base_hmm = base_impl.GetHMM();
 
 	return base_hmm.IsSimilar(test_hmm);
-}
-
-
-
-
-
-double** allocate_2d(int M, int T) {
-
-	double** ar = (double**)malloc(M * sizeof(double*));
-    for (int i=0; i<M; i++)
-        ar[i] = (double*)calloc(T, sizeof(double));
-
-
-	printf("Address allocated: %p\n", ar);
-
-
-    return ar;
-}
-
-
-double*** allocate_3d(int M, int K, int T) {
-
-	double*** ar = (double***)malloc(M * sizeof(double**));
-	for (int i=0; i<M; i++) {
-        ar[i] = (double**)malloc(K * sizeof(double*));
-        for (int j=0; j<K; j++)
-	        ar[i][j] = (double*)calloc(T, sizeof(double));
-	}
-	return ar;
-}
-
-
-double** free_2d(double** ar, int M, int T) {
-
-    for (int i=0; i<M; i++)
-        free(ar[i]);
-    free(ar);
-	return NULL;
-}
-
-double*** free_3d(double*** ar, int M, int K, int T) {
-
-    for (int i=0; i<M; i++) {
-		for (int j=0; j<K; j++)
-			free(ar[i][j]);
-		free(ar[i]);
-	}
-	free(ar);
-	return NULL;
 }

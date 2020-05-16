@@ -2,16 +2,33 @@
 #define BW_BASELINE_H
 
 #include <vector>
-#include "baum_welch.h"
+#include "hmm.h"
+
 
 using IVector = std::vector<int>;
 
+#define MAX_ITERATIONS 5
 
-class BaumWelchBaseline: public BaumWelch {
+
+class BaumWelch {
 
 	public:
 
-		BaumWelchBaseline() {};
+		virtual void Load(HMM& hmm, IVector obs_seq) {};
+
+		virtual void operator()() = 0; //{ std::cout << "Swsth" << std::endl;};
+
+		virtual HMM GetHMM() { return HMM(0,0); };
+
+		virtual ~BaumWelch() {};
+
+};
+
+class BaumWelchCpp: public BaumWelch {
+
+	public:
+
+		BaumWelchCpp() {};
 
 		void Load(HMM& hmm, IVector obs_seq) {
 			transition = hmm.transition;
@@ -26,12 +43,12 @@ class BaumWelchBaseline: public BaumWelch {
 			return res;
 		}
 
-		void operator()();
+		virtual void operator()() = 0;
 
-		~BaumWelchBaseline() {};
+		~BaumWelchCpp() {};
 
 
-	private:
+	protected:
 
 		Matrix_v transition;
 
@@ -43,7 +60,16 @@ class BaumWelchBaseline: public BaumWelch {
 
 };
 
-extern BaumWelchBaseline x;
+
+class BaumWelchCppOpts: public BaumWelchCpp {
+	public:
+		void operator()();
+};
+
+class BaumWelchCppBaseline: public BaumWelchCpp {
+	public:
+		void operator()();
+};
 
 
 #endif

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../include/bw.h"
+#include "../include/bw_baseline.h"
 
 #define MAX_ITER 5
 
@@ -25,8 +25,7 @@ static void expectation_step(const Matrix_v&, const Matrix_v&, const Matrix_v&,
 // FLOPS: (9*M**2)*(T-1) + (M**2)*T + 4*M*(T-1) + 3*M*T + T + 3*M + M*N*(T+1)
 
 
-void baum_welch_opts(Matrix_v& transition, Matrix_v& emission, vector<double>& init_prob,
-		const vector<int>& observation) {
+void BaumWelchCppOpts::operator()() {
 
 	int T = observation.size();
 	int n_states = transition.size();

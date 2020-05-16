@@ -22,7 +22,7 @@ static void expectation_step(const Matrix_v&, const Matrix_v&, const Matrix_v&,
 
 
 
-void BaumWelchBaseline::operator()() {
+void BaumWelchCppBaseline::operator()() {
 
 	int T = observation.size();
 	int n_states = transition.size();
