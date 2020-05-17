@@ -8,11 +8,6 @@
 
 #include "../include/baum_welch.h"
 
-// forward, backward: T*M
-// A: M*M
-// B: N*M
-// pi : M
-
 using namespace std;
 
 
@@ -104,7 +99,7 @@ static void forward_backward(double* forward, double* backward, int M, int N, in
 
 	transpose_square_matrix(A, M);
     for (int t = T-2; t >= 0; t--) {
-        for (int i = 0; i < M-7; i+=16) {
+        for (int i = 0; i < M-15; i+=16) {
 			__m256d acc1 = _mm256_setzero_pd(), acc2 = _mm256_setzero_pd();
 			__m256d acc3 = _mm256_setzero_pd(), acc4 = _mm256_setzero_pd();
             for (int j = 0; j < M; j++) {
@@ -134,47 +129,73 @@ static void update_and_check(double* forward, double* backward, int M, int N, in
 		double* pi, double* A, double* B, int* observation_seq, double *sc_factors,
 		const vector<vector<int>>& obs_dict) {
 
-	for (int t = 0; t < T; t++) {
-		sc_factors[t] = 1.0 / sc_factors[t];
+	for (int t = 0; t < T; t+=4) {
+		__m256d sc_vec = _mm256_load_pd(sc_factors+t);
+		_mm256_store_pd(sc_factors + t, _mm256_div_pd(_mm256_set1_pd(1.0), sc_vec));
 	}
 
-	for (int z = 0; z < M; z++) {
-		pi[z] = forward[z] * backward[z] * sc_factors[0];
+	for (int z = 0; z < M; z+=4) {
+		__m256d fwd_vec = _mm256_load_pd(forward + z);
+		__m256d bwd_vec = _mm256_load_pd(backward + z);
+		__m256d res = _mm256_mul_pd(fwd_vec, bwd_vec);
+		_mm256_store_pd(pi + z, _mm256_mul_pd(res, _mm256_set1_pd(sc_factors[0])));
 	}
 
-
-
-	// ops = 3*T*M^2 , mem = 4*T*M^2
 
 	for (int i = 0; i < M; i++) {
-		double acc = 0.0;
+		double sum = 0.0;
 		for (int t = 0; t < T-1; t++) {
-			acc += (forward[t*M + i] * backward[t*M + i]) * sc_factors[t];
+			//__m256d bwd_vec1 = _mm256_load_pd(backward + t*M + i);
+			//__m256d fwd_vec1 = _mm256_load_pd(forward + t*M + i);
+			//__m256d inter1 = _mm256_mul_pd(bwd_vec1, fwd_vec1);
+			//sum1 = _mm256_fmadd_pd(inter1, _mm256_set1_pd(sc_factors[t]), sum1);
+			sum += (forward[t*M + i] * backward[t*M + i]) * sc_factors[t];
 		}
-		for (int j = 0; j < M; j++) {
-			double sum = 0.0;
+		sum = 1.0/ sum;
+
+		for (int j = 0; j < M-7; j+=8) {
+			__m256d acc1 = _mm256_setzero_pd();
+			__m256d acc2 = _mm256_setzero_pd();
 			for (int t = 0; t < T-1; t++) {
-				sum += backward[(t+1)*M + j] * B[observation_seq[t+1]*M + j] * forward[t*M + i];
+				__m256d fwd_vec1 = _mm256_set1_pd(forward[t*M + i]);
+				__m256d bwd_vec1 = _mm256_load_pd(backward + (t+1)*M + j);
+				__m256d b_vec1 = _mm256_load_pd(B + observation_seq[t+1]*M + j);
+				__m256d inter1 = _mm256_mul_pd(bwd_vec1, b_vec1);
+				acc1 = _mm256_fmadd_pd(fwd_vec1, inter1, acc1);
+
+				__m256d bwd_vec2 = _mm256_load_pd(backward + (t+1)*M + j+4);
+				__m256d b_vec2 = _mm256_load_pd(B + observation_seq[t+1]*M + j+4);
+				__m256d inter2 = _mm256_mul_pd(bwd_vec2, b_vec2);
+				acc2 = _mm256_fmadd_pd(fwd_vec1, inter2, acc2);
 			}
-			A[i*M + j] *= sum / acc;
+			acc1 = _mm256_mul_pd(acc1, _mm256_set1_pd(sum));
+			acc2 = _mm256_mul_pd(acc2, _mm256_set1_pd(sum));
+			_mm256_store_pd(A + i*M + j, _mm256_mul_pd(acc1, _mm256_load_pd(A + i*M + j)));
+			_mm256_store_pd(A + i*M + j+4, _mm256_mul_pd(acc2, _mm256_load_pd(A + i*M + j+4)));
 		}
 	}
 
 
 
-	// ops <= 4*T*M*N, mem <= 3*T*M^2
-    for (int k = 0; k < M; k++) {
-        double sum1 = 0.0;
+    for (int k = 0; k < M-3; k+=4) {
+		__m256d sum1 = _mm256_setzero_pd();
         for (int t = 0; t < T; t++) {
-            sum1 += forward[t*M + k] * backward[t*M + k] * sc_factors[t];
+			__m256d bwd_vec1 = _mm256_load_pd(backward + t*M + k);
+			__m256d fwd_vec1 = _mm256_load_pd(forward + t*M + k);
+			__m256d sc_vec1 = _mm256_set1_pd(sc_factors[t]);
+			sum1 = _mm256_fmadd_pd(sc_vec1, _mm256_mul_pd(bwd_vec1, fwd_vec1), sum1);
 		}
 
 		for (int j = 0; j < N; j++) {
-			double acc = 0.0;
+			__m256d acc1 = _mm256_setzero_pd();
 			for (const auto& t: obs_dict[j]) {
-				acc += (forward[t*M + k] * backward[t*M + k]) * sc_factors[t];
+				__m256d bwd_vec1 = _mm256_load_pd(backward + t*M + k);
+				__m256d fwd_vec1 = _mm256_load_pd(forward + t*M + k);
+				__m256d inter1 = _mm256_mul_pd(bwd_vec1, fwd_vec1);
+				__m256d sc_vec1 = _mm256_set1_pd(sc_factors[t]);
+				acc1 = _mm256_fmadd_pd(sc_vec1, inter1, acc1);
 			}
-			B[j*M + k] = acc / sum1;
+			_mm256_store_pd(B + j*M + k, _mm256_div_pd(acc1, sum1));
 		}
     }
 
@@ -190,36 +211,8 @@ void BaumWelchCVectDim::operator()() {
 		obs_dict[obs[t]].push_back(t);
 	}
 
-
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
         forward_backward(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors);
         update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors, obs_dict);
     }
-
-	#ifdef DEBUG
-		using namespace std;
-
-		cout << endl << "--------------------------  DEBUG START -------------------------- " << endl;
-		cout << "Matrix A:" << endl;
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < M; j++) {
-				cout << A[i][j] << " ";
-			}
-			cout << endl;
-		}
-		cout << endl << "Matrix B:" << endl;
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < N; j++) {
-				cout << B[i][j] << " ";
-			}
-			cout << endl;
-		}
-		cout << endl << "Pi vector:" << endl;
-		for (int i = 0; i < M; i++) {
-			cout << pi[i] << " ";
-		}
-		cout << endl << endl;
-		cout << endl << "-------------------------- DEBUG END -------------------------- " << endl;
-	#endif
-
 }
