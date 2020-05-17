@@ -23,15 +23,44 @@ inline double hsum_double_avx(__m256d v) {
     return  _mm_cvtsd_f64(_mm_add_sd(vlow, high64));  // reduce to scalar
 }
 
+inline __m256d add_4_arrays(__m256d a, __m256d b, __m256d c, __m256d d) {
+      __m256d t1, t2, z1, z2, e1, e2, f1, f2, h1, h2;
+
+
+    // first we create arrays: [A[1], B[1], A[3], B[3]], [A[2], B[2], A[4], B[4]], [C[1], D[1], C[3], D[3]], [C[2], D[2], C[4], D[4]]
+    t1 = _mm256_unpacklo_pd(a, b);
+    z1 = _mm256_unpackhi_pd(a, b);
+    t2 = _mm256_unpacklo_pd(c, d);
+    z2 = _mm256_unpackhi_pd(c, d);
+
+    // now we create: [A[1]+A[2], B[1]+B[2], A[3]+A[4], B[3]+B[4]], [C[1]+C[2], D[1]+D[2], C[3]+C[4], D[3]+D[4]]
+    e1 = _mm256_add_pd(t1, z1);
+    e2 = _mm256_add_pd(t2, z2);
+
+    // now we create: [A[3]+A[4], B[3]+B[4], A[3]+A[4], B[3]+B[4]], [C[3]+C[4], D[3]+D[4], C[3]+C[4], D[3]+D[4]]
+    f1 = _mm256_permute4x64_pd(e1, 0b11101110);
+    f2 = _mm256_permute4x64_pd(e2, 0b01000100);
+
+    // now we create [A[1]+A[2]+A[3]+A[4], B[1]+B[2]+B[3]+B[4], .... ]
+    h1 = _mm256_add_pd(e1, f1);
+
+    // now we create [....., C[1]+C[2]+C[3]+C[4], D[1]+D[2]+D[3]+D[4]]
+    h2 = _mm256_add_pd(e2, f2);
+
+    // [A[1]+A[2]+A[3]+A[4], B[1]+B[2]+B[3]+B[4], C[1]+C[2]+C[3]+C[4], D[1]+D[2]+D[3]+D[4]]
+    return _mm256_blend_pd(h1, h2, 0b1100);
+
+}
+
 
 inline void forward_backward(double* forward, double* backward, int M, int N, int T,
 		double* pi, double* A, double* B, int* observation_seq, double *sc_factors) {
 
     double sum = 0.0, acc = 0.0;
-    double temp_array[4];
 
     __m256d B_vect, p, sum_vector, temp, f, b, A_vect, sc_vector, acc_v;
-    __m256d v1, v2, v3, v4;
+    __m256d sum_vector1, sum_vector2, sum_vector3, sum_vector4;
+    __m256d A_vect1, A_vect2, A_vect3, A_vect4;
 
     // forward
 
@@ -95,20 +124,35 @@ inline void forward_backward(double* forward, double* backward, int M, int N, in
 
 	// ops = 3*T*M^2, mem = 3*T*M^2
     for (int t = T-2; t >= 0; t--) {
-        for (int i = 0; i < M; i++) {
+        for (int i = 0; i < M; i+=4) {
             sum = 0.0;
-            sum_vector = _mm256_set1_pd(0.0);
+            sum_vector1 = _mm256_set1_pd(0.0);
+            sum_vector2 = _mm256_set1_pd(0.0);
+            sum_vector3 = _mm256_set1_pd(0.0);
+            sum_vector4 = _mm256_set1_pd(0.0);
+
             for (int j = 0; j < M; j+=4) {
                 b = _mm256_load_pd(backward + (t+1)*M + j);
-                A_vect = _mm256_load_pd(A + i*M + j);
                 B_vect = _mm256_load_pd(B + observation_seq[t+1]*M + j);
+                temp = _mm256_mul_pd(b, B_vect);
 
-                temp = _mm256_mul_pd(b, A_vect);
-                sum_vector = _mm256_fmadd_pd(temp, B_vect, sum_vector);
+                A_vect1 = _mm256_load_pd(A + i*M + j);
+                A_vect2 = _mm256_load_pd(A + (i+1)*M + j);
+                A_vect3 = _mm256_load_pd(A + (i+2)*M + j);
+                A_vect4 = _mm256_load_pd(A + (i+3)*M + j);
+
+                sum_vector1 = _mm256_fmadd_pd(temp, A_vect1, sum_vector1);
+                sum_vector2 = _mm256_fmadd_pd(temp, A_vect2, sum_vector2);
+                sum_vector3 = _mm256_fmadd_pd(temp, A_vect3, sum_vector3);
+                sum_vector4 = _mm256_fmadd_pd(temp, A_vect4, sum_vector4);
+
+
 			}
 
-            sum = hsum_double_avx(sum_vector);
-            backward[t*M + i] = sum*sc_factors[t];
+            sc_vector = _mm256_set1_pd(sc_factors[t]);
+            sum_vector = add_4_arrays(sum_vector1, sum_vector2, sum_vector3, sum_vector4);
+            temp = _mm256_mul_pd(sc_vector, sum_vector);
+            _mm256_store_pd(backward + t*M + i, temp);
         }
     }
 
@@ -116,9 +160,15 @@ inline void forward_backward(double* forward, double* backward, int M, int N, in
 
 
 inline void update_and_check(double* forward, double* backward, int M, int N, int T,
-		double* pi, double* A, double* B, int* observation_seq, double *sc_factors) {
+		double* pi, double* A, double* B, int* observation_seq, double *sc_factors, vector<vector<int>>& obs_dict) {
 
-    __m256d B_vect, sum_vector, temp, f, b, acc_v, sc_vector, occurences;
+    __m256d B_vect, sum_vector, temp, f, b, acc_v, sc_vector;
+    __m256d acc1;
+    __m256d sum_vector1, sum_vector2, sum_vector3, sum_vector4;
+    __m256d f1, f2, f3, f4;
+    __m256d A1, A2, A3, A4;
+    __m256d temp1, temp2, temp3, temp4;
+
 
     double temp_array[4];
 
@@ -147,25 +197,57 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
             acc_v = _mm256_fmadd_pd(temp, sc_vector, acc_v);
 		}
 
-		for (int j = 0; j < M; j++) {
-            sum_vector = _mm256_set1_pd(0.0);
+        for (int j = 0; j < M; j+=4) {
+            sum_vector1 = _mm256_set1_pd(0.0);
+            sum_vector2 = _mm256_set1_pd(0.0);
+            sum_vector3 = _mm256_set1_pd(0.0);
+            sum_vector4 = _mm256_set1_pd(0.0);
+
 			for (int t = 0; t < T-1; t++) {
-                B_vect = _mm256_set1_pd(backward[(t+1)*M + j] * B[(observation_seq[t+1])*M + j]);
-                f = _mm256_load_pd(forward + t*M + i);
-                sum_vector = _mm256_fmadd_pd(B_vect, f, sum_vector);
+                b = _mm256_load_pd(backward + (t+1)*M + j);
+                B_vect = _mm256_load_pd(B + observation_seq[t+1]*M + j);
+                temp = _mm256_mul_pd(b, B_vect);
+
+                f1 = _mm256_set1_pd(forward[t*M + i]);
+                f2 = _mm256_set1_pd(forward[t*M + i+1]);
+                f3 = _mm256_set1_pd(forward[t*M + i+2]);
+                f4 = _mm256_set1_pd(forward[t*M + i+3]);
+
+                sum_vector1 = _mm256_fmadd_pd(temp, f1, sum_vector1);
+                sum_vector2 = _mm256_fmadd_pd(temp, f2, sum_vector2);
+                sum_vector3 = _mm256_fmadd_pd(temp, f3, sum_vector3);
+                sum_vector4 = _mm256_fmadd_pd(temp, f4, sum_vector4);
             }
-            temp =  _mm256_div_pd(sum_vector, acc_v);
-            _mm256_store_pd(temp_array, temp);
 
-            A[i*M + j] *= temp[0];
-            A[(i+1)*M + j] *= temp[1];
-            A[(i+2)*M + j] *= temp[2];
-            A[(i+3)*M + j] *= temp[3];
+            _mm256_store_pd(temp_array, acc_v);
+            f1 = _mm256_set1_pd(1.0/temp_array[0]);
+            f2 = _mm256_set1_pd(1.0/temp_array[1]);
+            f3 = _mm256_set1_pd(1.0/temp_array[2]);
+            f4 = _mm256_set1_pd(1.0/temp_array[3]);
 
-		}
+            sum_vector1 = _mm256_mul_pd(sum_vector1, f1);
+            sum_vector2 = _mm256_mul_pd(sum_vector2, f2);
+            sum_vector3 = _mm256_mul_pd(sum_vector3, f3);
+            sum_vector4 = _mm256_mul_pd(sum_vector4, f4);
 
+            A1 = _mm256_load_pd(A + i*M + j);
+            A2 = _mm256_load_pd(A + (i+1)*M + j);
+            A3 = _mm256_load_pd(A + (i+2)*M + j);
+            A4 = _mm256_load_pd(A + (i+3)*M + j);
+
+            temp1 = _mm256_mul_pd(A1, sum_vector1);
+            temp2 = _mm256_mul_pd(A2, sum_vector2);
+            temp3 = _mm256_mul_pd(A3, sum_vector3);
+            temp4 = _mm256_mul_pd(A4, sum_vector4);
+
+            _mm256_store_pd(A + i*M + j, temp1);
+            _mm256_store_pd(A + (i+1)*M + j, temp2);
+            _mm256_store_pd(A + (i+2)*M + j, temp3);
+            _mm256_store_pd(A + (i+3)*M + j, temp4);
+
+
+        }
     }
-
 
 	// ops = 3*T*M*N, mem = 3*T*M^2
     for (int i = 0; i < M; i+=4) {
@@ -180,23 +262,18 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
             sum_vector = _mm256_fmadd_pd(temp, sc_vector, sum_vector);
 		}
 
-        for (int vk = 0; vk < N; vk++) {
+        for (int j=0; j < N; j++) {
+            acc1 = _mm256_set1_pd(0.0);
+			for (const auto& t: obs_dict[j]) {
+                sc_vector = _mm256_set1_pd(1.0/sc_factors[t]);
+				f = _mm256_load_pd(forward + t*M + i);
+                b = _mm256_load_pd(backward + t*M + i);
+                temp = _mm256_mul_pd(f, b);
+                acc1 = _mm256_fmadd_pd(temp, sc_vector, acc1);
+			}
 
-            occurences = _mm256_set1_pd(0.0);
-
-
-            for (int t = 0; t < T; t++) {
-                if (observation_seq[t] == vk) {
-
-                    sc_vector = _mm256_set1_pd(1.0/sc_factors[t]);
-                    f = _mm256_load_pd(forward + t*M + i);
-                    b = _mm256_load_pd(backward + t*M + i);
-                    temp = _mm256_mul_pd(f, b);
-                    occurences = _mm256_fmadd_pd(temp, sc_vector, occurences);
-				}
-            }
-            temp = _mm256_div_pd(occurences, sum_vector);
-            _mm256_store_pd(B + vk*M + i, temp);
+			temp = _mm256_div_pd(acc1, sum_vector);
+            _mm256_store_pd(B + j*M + i, temp);
 
         }
     }
@@ -207,11 +284,19 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
 
 void BaumWelchCVectOpt::operator()() {
 
+    /* Significant optimization to get rid of conditional addition with
+	 * extremely bad branch prediction patterns (highly unlikely to
+	 * predict its outcome */
+	vector<vector<int>> obs_dict(N);
+	for (int t = 0; t < T; t++) {
+		obs_dict[obs[t]].push_back(t);
+	}
+
     double *sc_factors = (double *)aligned_alloc(32, T * sizeof(double));
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
         forward_backward(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors);
-        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors);
+        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors, obs_dict);
     }
 
 	#ifdef DEBUG
