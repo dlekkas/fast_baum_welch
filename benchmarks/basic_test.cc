@@ -5,7 +5,7 @@
 #include "../include/infra.h"
 #include "../include/baum_welch.h"
 
-#define N_ITERATIONS 20
+#define N_ITERATIONS 25
 #define N_RUNS 1
 
 #define SEQ_LEN 128
@@ -22,14 +22,20 @@ int main() {
 	vector<Implementation> implementations {
 		//{"C++ baseline", new BaumWelchCppBaseline()},
 		//{"C++ opts", new BaumWelchCppOpts()},
+<<<<<<< HEAD
 		{"C basic", new BaumWelchCBasic()},
 		{"C basic opts", new BaumWelchCBasicOpts()},
 		{"C more opts", new BaumWelchCOptsV2()},
 		{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
+=======
+		//{"C basic", new BaumWelchCBasic()},
+		//{"C basic opts", new BaumWelchCBasicOpts()},
+		//{"C more opts", new BaumWelchCOptsV2()},
+		//{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
+>>>>>>> f0ecfcf8779339dfacfd85a4b6336fe7ca60287e
 		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
-		{"C basic vectorized", new BaumWelchCVectBasic()},
-		{"C vectorized opt", new BaumWelchCVectOpt()}
-
+		{"C vectorized opt", new BaumWelchCVectOpt()},
+		{"C vectorized v2", new BaumWelchCVectDim()},
 	};
 
 	for (auto [impl_tag, bw_func]: implementations) {
