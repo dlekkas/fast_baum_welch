@@ -152,7 +152,7 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
 		for (int j = 0; j < M; j++) {
 			double sum = 0.0;
 			for (int t = 0; t < T-1; t++) {
-				sum += backward[t+1][j] * B[observation_seq[t+1]][j];
+				sum += backward[t+1][j] * B[observation_seq[t+1]][j] * forward[t][i];
 			}
 			A[i][j] *= sum / acc;
 		}
