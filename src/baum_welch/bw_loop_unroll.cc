@@ -29,20 +29,21 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
     for (int t = 1; t < T; t++) {
 
         sum = 0.0;
-	    for (int i = 0; i < M; i++) {
+	    for (int i = 0; i < M-3; i+=4) {
             double acc1 = 0.0, acc2 = 0.0, acc3 = 0.0, acc4 = 0.0;
 			int j = 0;
-            for (; j < M-3; j+=4) {
-                acc1 += forward[t-1][j] * A[j][i];
-                acc2 += forward[t-1][j+1] * A[j+1][i];
-                acc3 += forward[t-1][j+2] * A[j+2][i];
-                acc4 += forward[t-1][j+3] * A[j+3][i];
-			}
             for (; j < M; j++) {
-				acc1 += forward[t-1][j] * A[j][i];
+                acc1 += forward[t-1][j] * A[j][i];
+                acc2 += forward[t-1][j] * A[j][i+1];
+                acc3 += forward[t-1][j] * A[j][i+2];
+                acc4 += forward[t-1][j] * A[j][i+3];
 			}
-            forward[t][i] = B[observation_seq[t]][i] * (acc1 + acc2 + acc3 + acc4);
-            sum += forward[t][i];
+            forward[t][i]   = B[observation_seq[t]][i]   * acc1;
+            forward[t][i+1] = B[observation_seq[t]][i+1] * acc2;
+            forward[t][i+2] = B[observation_seq[t]][i+2] * acc3;
+            forward[t][i+3] = B[observation_seq[t]][i+3] * acc4;
+            sum += (forward[t][i] + forward[t][i+1]);
+            sum += (forward[t][i+2] + forward[t][i+3]);
         }
 
 

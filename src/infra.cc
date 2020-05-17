@@ -12,8 +12,8 @@
 
 
 
-void perf_test_rdtscp(const std::string& impl_tag, BaumWelch* impl,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
+void perf_test_rdtscp(const std::string& impl_tag, BaumWelch* impl, int M, int N, int S,
+		int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> cycles_list;
@@ -45,8 +45,8 @@ void perf_test_rdtscp(const std::string& impl_tag, BaumWelch* impl,
 }
 
 
-void perf_test_chrono(const std::string& impl_tag, BaumWelch* impl,
-		int M, int N, int S, int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
+void perf_test_chrono(const std::string& impl_tag, BaumWelch* impl, int M, int N, int S,
+		int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file) {
 
 	std::vector<int> observations = uniform_emission_sample(S, N);
 	std::vector<double> time_list;
@@ -85,14 +85,13 @@ bool IsValidImpl(BaumWelch* impl) {
 	std::vector<int> obs = uniform_emission_sample(o, n);
 	HMM base_model(m, n);
 
-	base_impl.Load(base_model, obs);
-	base_impl();
-	HMM base_hmm = base_impl.GetHMM();
-
 	impl->Load(base_model, obs);
 	(*impl)();
 	HMM test_hmm = impl->GetHMM();
 
+	base_impl.Load(base_model, obs);
+	base_impl();
+	HMM base_hmm = base_impl.GetHMM();
 
 	return base_hmm.IsSimilar(test_hmm);
 }
