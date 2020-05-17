@@ -25,7 +25,7 @@ int main() {
 		{"C basic", new BaumWelchCBasic()},
 		{"C basic opts", new BaumWelchCBasicOpts()},
 		{"C more opts", new BaumWelchCOptsV2()},
-		//{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
+		{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
 		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
 		{"C basic vectorized", new BaumWelchCVectBasic()},
 		{"C vectorized opt", new BaumWelchCVectOpt()}
