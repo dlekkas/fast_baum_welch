@@ -85,13 +85,14 @@ bool IsValidImpl(BaumWelch* impl) {
 	std::vector<int> obs = uniform_emission_sample(o, n);
 	HMM base_model(m, n);
 
+	base_impl.Load(base_model, obs);
+	base_impl();
+	HMM base_hmm = base_impl.GetHMM();
+
 	impl->Load(base_model, obs);
 	(*impl)();
 	HMM test_hmm = impl->GetHMM();
 
-	base_impl.Load(base_model, obs);
-	base_impl();
-	HMM base_hmm = base_impl.GetHMM();
 
 	return base_hmm.IsSimilar(test_hmm);
 }

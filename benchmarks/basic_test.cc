@@ -26,7 +26,8 @@ int main() {
 		{"C basic opts", new BaumWelchCBasicOpts()},
 		{"C more opts", new BaumWelchCOptsV2()},
 		//{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
-		{"C loop unrolling opt", new BaumWelchCLoopUnroll()}
+		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
+		{"C basic vectorized", new BaumWelchCVectBasic}
 	};
 
 	for (auto [impl_tag, bw_func]: implementations) {

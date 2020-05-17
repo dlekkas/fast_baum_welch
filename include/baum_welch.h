@@ -67,6 +67,43 @@ class BaumWelchCLoopUnroll0: public BaumWelchC {
 		void operator()();
 };
 
+class BaumWelchCVect: public BaumWelch {
+
+	public:
+
+		BaumWelchCVect() = default;
+
+		virtual void operator()() = 0;
+
+		virtual void Load(HMM& hmm, std::vector<int>& obs_seq);
+
+		HMM GetHMM();
+
+		virtual ~BaumWelchCVect();
+
+
+	protected:
+
+		int M; int N; int T;
+
+		double* A;
+
+		double* B;
+
+		double* pi;
+
+		double* fwd;
+
+		double* bwd;
+
+		int* obs;
+
+};
+
+class BaumWelchCVectBasic: public BaumWelchCVect {
+	public:
+		void operator()();
+};
 
 
 class BaumWelchCExtended: public BaumWelchC {
@@ -120,6 +157,7 @@ class BaumWelchCpp: public BaumWelch {
 		}
 
 		HMM GetHMM() {
+
 			HMM res(transition, emission, init_prob);
 
 			return res;

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../include/bw_baseline.h"
+#include "../include/baum_welch.h"
 
 #define MAX_ITER 5
 
