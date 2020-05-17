@@ -166,7 +166,7 @@ void BaumWelchCVect::Load(HMM& hmm, vector<int>& obs_seq) {
 	copy_vec(hmm.transition, A, M);
 
 	B = allocate_alligned(N, M);
-	copy_vec(hmm.emission, B, N);
+	copy_vec(hmm.emission, B, M);
 
 	pi = allocate_alligned(M, 1);
 	copy(hmm.pi.begin(), hmm.pi.end(), pi);
