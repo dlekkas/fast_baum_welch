@@ -63,7 +63,6 @@ def plot(plot_time, input_file, save_name, show_ci=False):
         print(i)
         d = times[i]
         y = [d[j] for j in d]
-        print(save_name,":")
         print(y)
         if not show_ci:
             line=plt.plot(x, y, marker='o', linestyle='-', label=i)
@@ -71,14 +70,8 @@ def plot(plot_time, input_file, save_name, show_ci=False):
             d = cis[i]
             ci_lows = [d[j][0] for j in d]
             ci_highs = [d[j][1] for j in d]
-            print("conf. intervals :")
-            print(list(zip(ci_lows, ci_highs)))
             ci_lows_err = list(np.array(y) - np.array(ci_lows))
             ci_highs_err = list(np.array(ci_highs) - np.array(y))
-            print("ci_lows_err:")
-            print(ci_lows_err)
-            print("ci_highs_err:")
-            print(ci_highs_err)
 
             conf_intervals = [ci_lows_err, ci_highs_err]
             line=plt.errorbar(x, y, xerr=0.0, yerr=conf_intervals, marker='o', capsize=6)
