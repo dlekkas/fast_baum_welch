@@ -2,6 +2,7 @@
 #include <numeric>
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 #include "benchmark.h"
 #include "bw.h"
@@ -26,6 +27,17 @@ Statistics Benchmark::CalculateStatistics() {
 	}
 	stats.variance = sum / (n-1);
 
+	// Calculation of 95% confidence interval according to
+	// https://spcl.inf.ethz.ch/Teaching/2017-dphpc/hoefler-scientific-benchmarking.pdf; z(0.025) = 1.96
+	int ci_low_rank  = floor((n - (1.96 * sqrt(n))) / 2);
+	int ci_high_rank = ceil(1 + ((n + (1.96 * sqrt(n))) / 2));
+	// check that they do not exceed the limits of array indexes
+	ci_low_rank  = max(0, ci_low_rank - 1);
+	ci_high_rank = min(n - 1, ci_high_rank - 1);
+
+	stats.confidence_interval_low  = measurements[ci_low_rank];
+	stats.confidence_interval_high = measurements[ci_high_rank];
+
 	return stats;
 }
 
@@ -38,13 +50,16 @@ void Benchmark::BeautyPrint(ostream& os) {
 	os << "[" << metric_tag << "] (VARIANCE): "<< stats.variance << endl;
 	os << "[" << metric_tag << "] (MIN): " << stats.min_v << endl;
 	os << "[" << metric_tag << "] (MAX): " << stats.max_v << endl;
+	os << "[" << metric_tag << "] (CI_LOW_BOUND): " << stats.confidence_interval_low << endl;
+	os << "[" << metric_tag << "] (CI_HIGH_BOUND): " << stats.confidence_interval_high << endl;
 
 }
 
 void Benchmark::CSVPrint(const string& file) {
 	ofstream ofs(file, ios_base::app);
 	ofs << impl_tag << "," << metric_tag << "," << M << ","
-		<< N << "," << O << "," << stats.mean << "," << bw_iterations << endl;
+		<< N << "," << O << "," << stats.mean << "," << bw_iterations << "," << stats.confidence_interval_low << ","
+		<< stats.confidence_interval_high << endl;
 }
 
 void Benchmark::CompactPrint(ostream& os) {

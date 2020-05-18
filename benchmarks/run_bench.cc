@@ -5,7 +5,7 @@
 #include "../include/bw.h"
 #include "../include/infra.h"
 
-#define N_ITER 10
+#define N_ITER 20
 #define N_RUNS 1
 
 using namespace std;

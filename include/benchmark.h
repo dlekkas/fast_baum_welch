@@ -10,6 +10,8 @@ struct Statistics {
 	double min_v;
 	double max_v;
 	double variance;
+	double confidence_interval_high;
+	double confidence_interval_low;
 };
 
 
