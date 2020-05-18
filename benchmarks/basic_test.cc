@@ -22,17 +22,10 @@ int main() {
 	vector<Implementation> implementations {
 		//{"C++ baseline", new BaumWelchCppBaseline()},
 		//{"C++ opts", new BaumWelchCppOpts()},
-<<<<<<< HEAD
 		{"C basic", new BaumWelchCBasic()},
 		{"C basic opts", new BaumWelchCBasicOpts()},
 		{"C more opts", new BaumWelchCOptsV2()},
-		{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
-=======
-		//{"C basic", new BaumWelchCBasic()},
-		//{"C basic opts", new BaumWelchCBasicOpts()},
-		//{"C more opts", new BaumWelchCOptsV2()},
-		//{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
->>>>>>> f0ecfcf8779339dfacfd85a4b6336fe7ca60287e
+		// {"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
 		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
 		{"C vectorized opt", new BaumWelchCVectOpt()},
 		{"C vectorized v2", new BaumWelchCVectDim()},
