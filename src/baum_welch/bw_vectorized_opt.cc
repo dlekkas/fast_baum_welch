@@ -160,7 +160,7 @@ inline void forward_backward(double* forward, double* backward, int M, int N, in
 
 
 inline void update_and_check(double* forward, double* backward, int M, int N, int T,
-		double* pi, double* A, double* B, int* observation_seq, double *sc_factors, vector<vector<int>>& obs_dict) {
+		double* pi, double* A, double* B, int* observation_seq, double *sc_factors, vector<vector<int>>& obs_dict, double* accs) {
 
     __m256d B_vect, sum_vector, temp, f, b, acc_v, sc_vector;
     __m256d acc1;
@@ -195,6 +195,8 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
 
             temp = _mm256_mul_pd(f, b);
             acc_v = _mm256_fmadd_pd(temp, sc_vector, acc_v);
+             _mm256_store_pd(accs+i, acc_v);
+
 		}
 
         for (int j = 0; j < M; j+=4) {
@@ -252,15 +254,13 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
 	// ops = 3*T*M*N, mem = 3*T*M^2
     for (int i = 0; i < M; i+=4) {
 
-        sum_vector = _mm256_set1_pd(0.0);
+        acc_v = _mm256_load_pd(accs+i);
+        sc_vector = _mm256_set1_pd(1.0/sc_factors[T-1]);
+        f = _mm256_load_pd(forward + (T-1)*M + i);
+        b = _mm256_load_pd(backward + (T-1)*M + i);
 
-        for (int t = 0; t < T; t++) {
-            sc_vector = _mm256_set1_pd(1.0/sc_factors[t]);
-            f = _mm256_load_pd(forward + t*M + i);
-            b = _mm256_load_pd(backward + t*M + i);
-            temp = _mm256_mul_pd(f, b);
-            sum_vector = _mm256_fmadd_pd(temp, sc_vector, sum_vector);
-		}
+        temp = _mm256_mul_pd(f, b);
+        sum_vector = _mm256_fmadd_pd(temp, sc_vector, acc_v);
 
         for (int j=0; j < N; j++) {
             acc1 = _mm256_set1_pd(0.0);
@@ -293,10 +293,12 @@ void BaumWelchCVectOpt::operator()() {
 	}
 
     double *sc_factors = (double *)aligned_alloc(32, T * sizeof(double));
+    double *accs = (double *)aligned_alloc(32, M * sizeof(double));
+
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
         forward_backward(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors);
-        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors, obs_dict);
+        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors, obs_dict, accs);
     }
 
 	#ifdef DEBUG
