@@ -9,8 +9,8 @@
 #define N_RUNS 1
 
 #define SEQ_LEN 128
-#define M 64
-#define N 64
+#define M 128
+#define N 128
 
 
 using namespace std;
@@ -22,13 +22,14 @@ int main() {
 	vector<Implementation> implementations {
 		//{"C++ baseline", new BaumWelchCppBaseline()},
 		//{"C++ opts", new BaumWelchCppOpts()},
-		{"C basic", new BaumWelchCBasic()},
-		{"C basic opts", new BaumWelchCBasicOpts()},
-		{"C more opts", new BaumWelchCOptsV2()},
+		//{"C basic", new BaumWelchCBasic()},
+		//{"C basic opts", new BaumWelchCBasicOpts()},
+		//{"C more opts", new BaumWelchCOptsV2()},
 		// {"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
 		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
 		{"C vectorized opt", new BaumWelchCVectOpt()},
 		{"C vectorized v2", new BaumWelchCVectDim()},
+		{"C vectorized with unroll", new BaumWelchCVectUnroll()}
 	};
 
 	for (auto [impl_tag, bw_func]: implementations) {

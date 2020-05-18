@@ -110,13 +110,16 @@ class BaumWelchCVectDim: public BaumWelchCVect {
 		void operator()();
 };
 
-
-
-
 class BaumWelchCVectOpt: public BaumWelchCVect {
 	public:
 		void operator()();
 };
+
+class BaumWelchCVectUnroll: public BaumWelchCVect {
+	public:
+		void operator()();
+};
+
 
 class BaumWelchCExtended: public BaumWelchC {
 
