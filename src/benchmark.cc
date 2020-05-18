@@ -38,6 +38,18 @@ Statistics Benchmark::CalculateStatistics() {
 	stats.confidence_interval_low  = measurements[ci_low_rank];
 	stats.confidence_interval_high = measurements[ci_high_rank];
 
+#ifdef DEBUG_CI
+	cout << "measurements:" << endl;
+	for (auto &x : measurements) {
+		cout << x << " ";
+	}
+	cout << "stats.confidence_interval_high: " << stats.confidence_interval_high << endl;
+	cout << "stats.confidence_interval_low: " << stats.confidence_interval_low << endl;
+	cout << "stats.median: " << stats.median << endl;
+
+	cout << endl;
+#endif
+
 	return stats;
 }
 
@@ -58,7 +70,7 @@ void Benchmark::BeautyPrint(ostream& os) {
 void Benchmark::CSVPrint(const string& file) {
 	ofstream ofs(file, ios_base::app);
 	ofs << impl_tag << "," << metric_tag << "," << M << ","
-		<< N << "," << O << "," << stats.mean << "," << bw_iterations << "," << stats.confidence_interval_low << ","
+		<< N << "," << O << "," << stats.median << "," << bw_iterations << "," << stats.confidence_interval_low << ","
 		<< stats.confidence_interval_high << endl;
 }
 

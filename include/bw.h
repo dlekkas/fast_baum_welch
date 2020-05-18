@@ -3,8 +3,6 @@
 
 #include "hmm.h"
 
-#define THRESHOLD 1e-4
-#define MAX_ITERATIONS 5
 
 void run_bw(int M, int N, int T, int* obs_sequence, double* pi, double** A, double** B,
 		double** fwd, double** backward, double** g, double*** chsi);

@@ -7,6 +7,8 @@
 
 #include "generator.h"
 
+#define THRESHOLD 1e-4
+
 using Matrix = double**;
 
 using Matrix_v = std::vector<std::vector<double>>;
@@ -36,7 +38,7 @@ class HMM {
 
 		void InitParamsRandom();
 
-		bool IsSimilar(const HMM& hmm, const double eps = 1e-4);
+		bool IsSimilar(const HMM& hmm, const double eps = THRESHOLD);
 
 
         // number of states
