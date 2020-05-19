@@ -8,9 +8,9 @@
 #define N_ITERATIONS 25
 #define N_RUNS 1
 
-#define SEQ_LEN 128
-#define M 64
-#define N 64
+#define SEQ_LEN 256
+#define M 128 //64
+#define N 128 //64
 
 
 using namespace std;
@@ -22,20 +22,15 @@ int main() {
 	vector<Implementation> implementations {
 		//{"C++ baseline", new BaumWelchCppBaseline()},
 		//{"C++ opts", new BaumWelchCppOpts()},
-<<<<<<< HEAD
-		{"C basic", new BaumWelchCBasic()},
-		{"C basic opts", new BaumWelchCBasicOpts()},
-		{"C more opts", new BaumWelchCOptsV2()},
-		{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
-=======
 		//{"C basic", new BaumWelchCBasic()},
 		//{"C basic opts", new BaumWelchCBasicOpts()},
 		//{"C more opts", new BaumWelchCOptsV2()},
+		{"C Manos", new BaumWelchCOptsManos()},
+		{"C Blocking", new BaumWelchCOptsBlocking()},
 		//{"C loop unrolling v1", new BaumWelchCLoopUnroll0()},
->>>>>>> f0ecfcf8779339dfacfd85a4b6336fe7ca60287e
-		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
-		{"C vectorized opt", new BaumWelchCVectOpt()},
-		{"C vectorized v2", new BaumWelchCVectDim()},
+		//{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
+		//{"C vectorized opt", new BaumWelchCVectOpt()},
+		//{"C vectorized v2", new BaumWelchCVectDim()},
 	};
 
 	for (auto [impl_tag, bw_func]: implementations) {

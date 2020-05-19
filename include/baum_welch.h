@@ -67,6 +67,15 @@ class BaumWelchCLoopUnroll0: public BaumWelchC {
 		void operator()();
 };
 
+class BaumWelchCOptsBlocking: public BaumWelchC {
+	public:
+		void operator()();
+};
+
+class BaumWelchCOptsManos: public BaumWelchC {
+	public:
+		void operator()();
+};
 class BaumWelchCVect: public BaumWelch {
 
 	public:
