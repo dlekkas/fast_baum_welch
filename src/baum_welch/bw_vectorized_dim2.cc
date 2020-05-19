@@ -175,26 +175,53 @@ static void update_and_check(double* forward, double* backward, int M, int N, in
 	}
 
 
-	for (int i = 0; i < M; i++) {
-		double sum = 0.0;
-		for (int t = 0; t < T-1; t++) {
-			sum += (forward[t*M + i] * backward[t*M + i]) * sc_factors[t];
-		}
+	double temp_array[4];
 
-		__m256d sum_vec = _mm256_set1_pd(1.0 / sum);
+	for (int i = 0; i < M; i+=4) {
+		__m256d sum_vec = _mm256_setzero_pd();
+		for (int t = 0; t < T-1; t++) {
+            __m256d sc_vector = _mm256_set1_pd(sc_factors[t]);
+            __m256d f_vec = _mm256_load_pd(forward + t*M + i);
+            __m256d b_vec = _mm256_load_pd(backward + t*M + i);
+			__m256d inter = _mm256_mul_pd(f_vec, b_vec);
+			sum_vec = _mm256_fmadd_pd(inter, sc_vector, sum_vec);
+		}
+		sum_vec = _mm256_div_pd(_mm256_set1_pd(1.0) , sum_vec);
+		_mm256_store_pd(temp_array, sum_vec);
+		__m256d f1 = _mm256_set1_pd(temp_array[0]);
+		__m256d f2 = _mm256_set1_pd(temp_array[1]);
+		__m256d f3 = _mm256_set1_pd(temp_array[2]);
+		__m256d f4 = _mm256_set1_pd(temp_array[3]);
+
 
 		for (int j = 0; j < M-3; j+=4) {
 			__m256d acc1 = _mm256_setzero_pd();
 			__m256d acc2 = _mm256_setzero_pd();
+			__m256d acc3 = _mm256_setzero_pd();
+			__m256d acc4 = _mm256_setzero_pd();
 			for (int t = 0; t < T-1; t++) {
 				__m256d fwd_vec1 = _mm256_set1_pd(forward[t*M + i]);
+				__m256d fwd_vec2 = _mm256_set1_pd(forward[t*M + i+1]);
+				__m256d fwd_vec3 = _mm256_set1_pd(forward[t*M + i+2]);
+				__m256d fwd_vec4 = _mm256_set1_pd(forward[t*M + i+3]);
+
 				__m256d bwd_vec1 = _mm256_load_pd(backward + (t+1)*M + j);
 				__m256d b_vec1 = _mm256_load_pd(B + observation_seq[t+1]*M + j);
 				__m256d inter1 = _mm256_mul_pd(bwd_vec1, b_vec1);
+
 				acc1 = _mm256_fmadd_pd(fwd_vec1, inter1, acc1);
+				acc2 = _mm256_fmadd_pd(fwd_vec2, inter1, acc2);
+				acc3 = _mm256_fmadd_pd(fwd_vec3, inter1, acc3);
+				acc4 = _mm256_fmadd_pd(fwd_vec4, inter1, acc4);
 			}
-			acc1 = _mm256_mul_pd(acc1, sum_vec);
+			acc1 = _mm256_mul_pd(acc1, f1);
+			acc2 = _mm256_mul_pd(acc2, f2);
+			acc3 = _mm256_mul_pd(acc3, f3);
+			acc4 = _mm256_mul_pd(acc4, f4);
 			_mm256_store_pd(A + i*M + j, _mm256_mul_pd(acc1, _mm256_load_pd(A + i*M + j)));
+			_mm256_store_pd(A + (i+1)*M + j, _mm256_mul_pd(acc2, _mm256_load_pd(A + (i+1)*M + j)));
+			_mm256_store_pd(A + (i+2)*M + j, _mm256_mul_pd(acc3, _mm256_load_pd(A + (i+2)*M + j)));
+			_mm256_store_pd(A + (i+3)*M + j, _mm256_mul_pd(acc4, _mm256_load_pd(A + (i+3)*M + j)));
 		}
 	}
 
