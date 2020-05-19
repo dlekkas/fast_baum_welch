@@ -208,5 +208,42 @@ class BaumWelchCppBaseline: public BaumWelchCpp {
 
 
 
+/* Implementations to compare with */
+
+class BaumWelchLibHMM: public BaumWelch {
+
+	public:
+
+		BaumWelchLibHMM() = default;
+
+		virtual void operator()();
+
+		virtual void Load(HMM& hmm, std::vector<int>& obs_seq);
+
+		HMM GetHMM();
+
+		virtual ~BaumWelchLibHMM();
+
+
+	protected:
+
+		int M; int N; int n; // states: N, observations: M, obs sequence length: n
+
+		double** Q;
+
+		double** g;
+
+		double** B;
+
+		double* nu;
+
+		int* y;
+
+		double** phi;
+
+		double** beta;
+
+};
+
 
 #endif

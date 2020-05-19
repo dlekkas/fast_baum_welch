@@ -187,3 +187,52 @@ BaumWelchCVect::~BaumWelchCVect() {
 	free_1d(bwd);
 	delete[] obs;
 }
+
+
+void BaumWelchLibHMM::Load(HMM& hmm, vector<int>& obs_seq) {
+	M = hmm.emission.size(); // M: observations
+	N = hmm.transition.size(); // N: states
+	n = obs_seq.size();
+
+	Q = allocate_2d(N, N);
+	copy_vec(hmm.transition, Q);
+
+	g = allocate_2d(N, M);
+	B = allocate_2d(M, N);
+	copy_vec(hmm.emission, B);
+
+	for (int i=0; i<M; i++)
+		for (int j=0; j<N; j++)
+			g[j][i] = B[i][j];
+
+	nu = allocate_1d(N);
+	copy(hmm.pi.begin(), hmm.pi.end(), nu);
+
+	y = new int[n];
+	copy(obs_seq.begin(), obs_seq.end(), y);
+
+	phi = allocate_2d(n, N);
+	beta = allocate_2d(n, N);
+}
+
+BaumWelchLibHMM::~BaumWelchLibHMM() {
+	free_2d(Q, N);
+	free_2d(B, M);
+	free_2d(g, N);
+	free_1d(nu);
+	delete[] y;
+}
+
+
+HMM BaumWelchLibHMM::GetHMM() {
+
+	for (int i=0; i<N; i++)
+		for (int j=0; j<M; j++)
+			B[j][i] = g[i][j];
+
+	vector<vector<double>> tr = convert_arr_to_vec(Q, M, M);
+	vector<vector<double>> em = convert_arr_to_vec(B, M, N);
+	vector<double> init_prob = convert_arr_to_vec(nu, N);
+	HMM res(tr, em, init_prob);
+	return res;
+}
