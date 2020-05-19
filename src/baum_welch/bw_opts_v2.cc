@@ -24,7 +24,7 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
         forward[0][i] = pi[i] * B[observation_seq[0]][i];
         sum += forward[0][i];
     }
-	// -> 1 div
+
     sc_factors[0] = 1.0 / sum;
 
 	// -> ops = M, mem = 2*M  (M muls)
@@ -35,34 +35,41 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
 	// -> ops = 2*T*M^2 , mem = 2*T*M^2   ((T-1)*M*(M+1) muls, (T-1)(M+1) divs, (T-1)*M*(M+1) adds)
     for (int t = 1; t < T; t++) {
 
-      sum = 0.0;
-	    for (int i = 0; i < M; i++) {
-          acc = 0.0;
-          for (int j = 0; j < M; j++) {
-              acc += forward[t-1][j] * A[j][i];
-					}
-          forward[t][i] = B[observation_seq[t]][i] * acc;
-          sum += forward[t][i];
-      }
+      	sum = 0.0;
+		for (int i = 0; i < M; i++) {
+        	acc = 0.0;
+          	for (int j = 0; j < M; j++) {
+              	acc += forward[t-1][j] * A[j][i];
+		  	}
+          	forward[t][i] = B[observation_seq[t]][i] * acc;
+          	sum += forward[t][i];
+      	}
 
-      sc_factors[t] = 1.0 / sum;
-      for (int i = 0; i < M; i++) {
-          forward[t][i] = forward[t][i] / sum;
-			}
+		/*
+		for (int i = 0; i < M; i++) {
+			sum += forward[t][i];
+		}
+		*/
+
+		sc_factors[t] = 1.0 / sum;
+		for (int i = 0; i < M; i++) {
+			forward[t][i] = forward[t][i] / sum;
+		}
     }
 
-		// -> not counted
+
+	// -> not counted
   	for (int i = 0; i < M; i++) {
         backward[T-1][i] = sc_factors[T-1];
-		}
+	}
 
-		// -> ops = 3*T*M^2, mem = 3*T*M^2   ((T-1)*M*(2M+1) muls, (T-1)*M*M adds)
+	// -> ops = 3*T*M^2, mem = 3*T*M^2   ((T-1)*M*(2M+1) muls, (T-1)*M*M adds)
     for (int t = T-2; t >= 0; t--) {
         for (int i = 0; i < M; i++) {
             sum = 0.0;
             for (int j = 0; j < M; j++) {
                 sum += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
-						}
+			}
             backward[t][i] = sum*sc_factors[t];
         }
     }
