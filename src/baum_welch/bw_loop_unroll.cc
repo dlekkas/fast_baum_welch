@@ -13,57 +13,60 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
 
     double sum = 0.0;
 
-	// ops = 2*M , mem = 4*M
+	// -> ops = 2*M , mem = 4*M  (M muls, M adds)
     for (int i = 0; i < M; i++) {
         forward[0][i] = pi[i] * B[observation_seq[0]][i];
         sum += forward[0][i];
     }
+	// -> 1 div
     sc_factors[0] = 1.0 / sum;
 
-	// ops = M, mem = 2*M
+	// -> ops = M, mem = 2*M  (M muls)
     for (int i = 0; i < M; i++) {
         forward[0][i] *= sum;
     }
 
-	// ops = 2*T*M^2 , mem = 2*T*M^2
+	// -> ops = 2*T*M^2 , mem = 2*T*M^2  ((T-1)*M*(M+1) muls, (T-1)*(M+1) divs, (T-1)*M*(M+1) adds)
     for (int t = 1; t < T; t++) {
 
-        sum = 0.0;
+      sum = 0.0;
+			// -> M*(M+1) muls, M*(M+1) adds
 	    for (int i = 0; i < M-3; i+=4) {
             double acc1 = 0.0, acc2 = 0.0, acc3 = 0.0, acc4 = 0.0;
-			int j = 0;
+						int j = 0;
             for (; j < M; j++) {
                 acc1 += forward[t-1][j] * A[j][i];
                 acc2 += forward[t-1][j] * A[j][i+1];
                 acc3 += forward[t-1][j] * A[j][i+2];
                 acc4 += forward[t-1][j] * A[j][i+3];
-			}
+						}
             forward[t][i]   = B[observation_seq[t]][i]   * acc1;
             forward[t][i+1] = B[observation_seq[t]][i+1] * acc2;
             forward[t][i+2] = B[observation_seq[t]][i+2] * acc3;
             forward[t][i+3] = B[observation_seq[t]][i+3] * acc4;
             sum += (forward[t][i] + forward[t][i+1]);
             sum += (forward[t][i+2] + forward[t][i+3]);
-        }
+      }
 
-
-        sc_factors[t] = 1.0 / sum;
-        for (int i = 0; i < M; i++) {
-            forward[t][i] = forward[t][i] / sum;
-		}
+			// -> M+1 divs
+      sc_factors[t] = 1.0 / sum;
+      for (int i = 0; i < M; i++) {
+          forward[t][i] = forward[t][i] / sum;
+			}
     }
-
+		// -> not counted
     for (int i = 0; i < M; i++) {
         backward[T-1][i] = sc_factors[T-1];
-	}
+		}
 
 
 
-	// ops = 3*T*M^2, mem = 3*T*M^2
-    for (int t = T-2; t >= 0; t--) {
+	// -> ops = 3*T*M^2, mem = 3*T*M^2   (EXACT FLOATS NOT COMPUTED)
+  for (int t = T-2; t >= 0; t--) {
 		int i = 0;
-        for (; i < M-3; i+=4) {
-            double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, sum4 = 0.0;
+		// -> (M*(5M/4 +1) muls, M*M adds)
+    for (; i < M-3; i+=4) {
+      double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, sum4 = 0.0;
 			for (int j = 0; j < M; j+=1) {
 				double tmp1 = backward[t+1][j] * B[observation_seq[t+1]][j];
 				sum1 += A[i][j]   * tmp1;
@@ -71,11 +74,12 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
 				sum3 += A[i+2][j] * tmp1;
 				sum4 += A[i+3][j] * tmp1;
 			}
-            backward[t][i]   = sum1 * sc_factors[t];
+      backward[t][i]   = sum1 * sc_factors[t];
 			backward[t][i+1] = sum2 * sc_factors[t];
 			backward[t][i+2] = sum3 * sc_factors[t];
 			backward[t][i+3] = sum4 * sc_factors[t];
-        }
+    }
+
 		for (; i < M; i++) {
 			double sum1 = 0.0;
 			for (int j = 0; j < M; j++) {
@@ -83,8 +87,7 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
 			}
 			backward[t][i] = sum1 * sc_factors[t];
 		}
-    }
-
+  }
 }
 
 
@@ -165,30 +168,29 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
         double sum1 = 0.0;
         for (int t = 0; t < T; t++) {
             sum1 += forward[t][k] * backward[t][k] * sc_factors[t];
-		}
+				}
 
-		int j = 0;
+				int j = 0;
         for (; j < N-1; j+=2) {
             double acc1 = 0.0, acc2 = 0.0;
-			for (const auto& t: obs_dict[j]) {
-				acc1 += (forward[t][k] * backward[t][k]) * sc_factors[t];
-			}
-			for (const auto& t: obs_dict[j+1]) {
-				acc2 += (forward[t][k] * backward[t][k]) * sc_factors[t];
-			}
-			B[j][k] = acc1 / sum1;
-			B[j+1][k] = acc2 / sum1;
+						for (const auto& t: obs_dict[j]) {
+								acc1 += (forward[t][k] * backward[t][k]) * sc_factors[t];
+						}
+			   		for (const auto& t: obs_dict[j+1]) {
+			 				acc2 += (forward[t][k] * backward[t][k]) * sc_factors[t];
+						}
+						B[j][k] = acc1 / sum1;
+						B[j+1][k] = acc2 / sum1;
         }
 
-		for (; j < N; j++) {
-			double acc = 0.0;
-			for (const auto& t: obs_dict[j]) {
-				acc += (forward[t][k] * backward[t][k]) * sc_factors[t];
-			}
-			B[j][k] = acc / sum1;
-		}
+				for (; j < N; j++) {
+					double acc = 0.0;
+					for (const auto& t: obs_dict[j]) {
+						acc += (forward[t][k] * backward[t][k]) * sc_factors[t];
+					}
+					B[j][k] = acc / sum1;
+				}
     }
-
 
 }
 
@@ -239,4 +241,3 @@ inline void print_vector(double* vec, int n) {
 	}
 	cout << endl;
 }
-

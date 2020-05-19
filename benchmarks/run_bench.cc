@@ -30,12 +30,13 @@ int main() {
 
 	// entry: { <implementation-tag>, <baum-welch-function> }
 	vector<Implementation> implementations {
-		{"C++ Baseline", new BaumWelchCppBaseline()},
-		{"C-like Baseline", new BaumWelchCBasic()},
-		{"C Basic Opts", new BaumWelchCBasicOpts()},
+		//{"C++ Baseline", new BaumWelchCppBaseline()},
+		//{"C-like Baseline", new BaumWelchCBasic()},
+		//{"C Basic Opts", new BaumWelchCBasicOpts()},
 		{"C More Opts", new BaumWelchCOptsV2()},
-		{"C Loop Unroll", new BaumWelchCLoopUnroll()},
-		{"C Basic Vectorized", new BaumWelchCVectBasic()}
+		{"C Manos", new BaumWelchCOptsManos()}
+		//{"C Loop Unroll", new BaumWelchCLoopUnroll()},
+		//{"C Basic Vectorized", new BaumWelchCVectBasic()}
 	};
 
 	// entry: { <n-states>, <n-emissions>, <observation-length> }

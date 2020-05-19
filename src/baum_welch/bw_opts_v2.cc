@@ -4,7 +4,7 @@
 */
 
 /*
-* INLINED FUNCTIONS + ELIMINATED GAMMA AND CHSI
+* INLINED FUNCTIONS + ELIMINATED GAMMA AND CHSI + REDUCED COMPUTATIONS WITH COMMON FACTORS
 */
 #include <iostream>
 #include <assert.h>
@@ -69,8 +69,8 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
             sum = 0.0;
             for (int j = 0; j < M; j++) {
                 sum += backward[t+1][j] * A[i][j] * B[observation_seq[t+1]][j];
-			}
-            backward[t][i] = sum*sc_factors[t];
+						}
+            backward[t][i] = sum * sc_factors[t];
         }
     }
 
@@ -84,42 +84,40 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
 	for (int i = 0; i < M; i++) {   // Compute A by rows
 
 		// -> T muls, T divs, T-1 adds
-		pi[i] = (forward[0][i] * backward[0][i]) / sc_factors[0];
-    double acc = pi[i];
-    for (int t = 1; t < T-1; t++) {
-    	acc += (forward[t][i] * backward[t][i]) / sc_factors[t];
-		}
+			pi[i] = (forward[0][i] * backward[0][i]) / sc_factors[0];
+    	double acc = pi[i];
+    	for (int t = 1; t < T-1; t++) {
+    		acc += (forward[t][i] * backward[t][i]) / sc_factors[t];
+			}
 
-		// -> M*(2T-1) muls, M divs, (T-1)*M adds
-		for (int j = 0; j < M; j++) {
-			double sum = 0.0;
-			for (int t = 0; t < T-1; t++) {
-          sum += (backward[t+1][j] * B[observation_seq[t+1]][j]) * forward[t][i];
-      }
-			A[i][j] *= sum / acc; // WHY IS THAT?
-		}
-
+			// -> M*(2T-1) muls, M divs, (T-1)*M adds
+			for (int j = 0; j < M; j++) {
+				double sum = 0.0;
+				for (int t = 0; t < T-1; t++) {
+          	sum += (backward[t+1][j] * B[observation_seq[t+1]][j]) * forward[t][i];
+      	}
+				A[i][j] *= sum / acc; // WHY IS THAT?
+			}
   }
 
-	// -> ops = 3*T*M*N, mem = 3*T*M^2   (T*M*(N+1) muls, M*N*(T+1) + M*T divs, T*M*(N+1) adds)
-    for (int i = 0; i < M; i++) {
-        double sum = 0.0;
-				// -> T muls, T divs, T sums
-        for (int t = 0; t < T; t++) {
-            sum += (forward[t][i] / sc_factors[t]) * backward[t][i];
-				}
-
-				// -> N*T muls, N*(T+1) divs, N*T adds
-        for (int vk = 0; vk < N; vk++) {
-            double occurrences = 0.0;
-            for (int t = 0; t < T; t++) {
-                if (observation_seq[t] == vk) {
-                    occurrences += (forward[t][i] * backward[t][i]) / sc_factors[t];
-								}
-            }
-						B[vk][i] = occurrences / sum;
-        }
-    }
+	// -> ops = 3*T*M*N, mem = 3*T*M^2   (T*M*(N+1) muls, M*(N*(T+1) + T) divs, T*M*(N+1) adds)
+  for (int i = 0; i < M; i++) {
+      double sum = 0.0;
+			// -> T muls, T divs, T sums
+      for (int t = 0; t < T; t++) {
+          sum += (forward[t][i] / sc_factors[t]) * backward[t][i];
+			}
+			// -> N*T muls, N*(T+1) divs, N*T adds
+      for (int vk = 0; vk < N; vk++) {
+          double occurrences = 0.0;
+          for (int t = 0; t < T; t++) {
+              if (observation_seq[t] == vk) {
+                  occurrences += (forward[t][i] * backward[t][i]) / sc_factors[t];
+							}
+          }
+					B[vk][i] = occurrences / sum;
+      }
+  }
 }
 
 
