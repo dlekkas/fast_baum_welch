@@ -122,6 +122,7 @@ void forward_backward(double* forward, double* backward, int M, int N, int T,
 		}
     }
 
+	transpose_square_matrix(A, M);
 
 	__m256d sum_vec = _mm256_set1_pd(sc_factors[T-1]);
     for (int i = 0; i < M; i+=4) {
@@ -130,28 +131,29 @@ void forward_backward(double* forward, double* backward, int M, int N, int T,
 
 
     for (int t = T-2; t >= 0; t--) {
-        for (int i = 0; i < M-15; i+=16) {
+		__m256d sc_vec = _mm256_set1_pd(sc_factors[t]);
+        for (int i = 0; i < M-3; i+=4) {
 			__m256d acc1 = _mm256_setzero_pd(), acc2 = _mm256_setzero_pd();
 			__m256d acc3 = _mm256_setzero_pd(), acc4 = _mm256_setzero_pd();
-            for (int j = 0; j < M; j++) {
-				__m256d aux_vec = _mm256_set1_pd(backward[(t+1)*M + j] * B[observation_seq[t+1]*M + j]);
-				__m256d A_vec1 = _mm256_load_pd(A + j*M + i);
-				__m256d A_vec2 = _mm256_load_pd(A + j*M + i+4);
-				__m256d A_vec3 = _mm256_load_pd(A + j*M + i+8);
-				__m256d A_vec4 = _mm256_load_pd(A + j*M + i+12);
-				acc1 = _mm256_fmadd_pd(A_vec1, aux_vec, acc1);
-				acc2 = _mm256_fmadd_pd(A_vec2, aux_vec, acc2);
-				acc3 = _mm256_fmadd_pd(A_vec3, aux_vec, acc3);
-				acc4 = _mm256_fmadd_pd(A_vec4, aux_vec, acc4);
+            for (int j = 0; j < M; j+=4) {
+				__m256d bwd_vec = _mm256_load_pd(backward + (t+1)*M + j);
+				__m256d b_vec= _mm256_load_pd(B + observation_seq[t+1]*M + j);
+				__m256d inter = _mm256_mul_pd(bwd_vec, b_vec);
+
+				__m256d A_vec1 = _mm256_load_pd(A + i*M + j);
+				acc1 = _mm256_fmadd_pd(A_vec1, inter, acc1);
+				__m256d A_vec2 = _mm256_load_pd(A + (i+1)*M + j);
+				acc2 = _mm256_fmadd_pd(A_vec2, inter, acc2);
+				__m256d A_vec3 = _mm256_load_pd(A + (i+2)*M + j);
+				acc3 = _mm256_fmadd_pd(A_vec3, inter, acc3);
+				__m256d A_vec4 = _mm256_load_pd(A + (i+3)*M + j);
+				acc4 = _mm256_fmadd_pd(A_vec4, inter, acc4);
 			}
-			__m256d sc_vec = _mm256_set1_pd(sc_factors[t]);
-			_mm256_store_pd(backward + t*M + i,    _mm256_mul_pd(acc1, sc_vec));
-			_mm256_store_pd(backward + t*M + i+4,  _mm256_mul_pd(acc2, sc_vec));
-			_mm256_store_pd(backward + t*M + i+8,  _mm256_mul_pd(acc3, sc_vec));
-			_mm256_store_pd(backward + t*M + i+12, _mm256_mul_pd(acc4, sc_vec));
+
+			__m256d inter = transpose_addition(acc1, acc2, acc3, acc4);
+			_mm256_store_pd(backward + t*M + i, _mm256_mul_pd(inter, sc_vec));
         }
     }
-	transpose_square_matrix(A, M);
 
 }
 
@@ -176,15 +178,12 @@ static void update_and_check(double* forward, double* backward, int M, int N, in
 	for (int i = 0; i < M; i++) {
 		double sum = 0.0;
 		for (int t = 0; t < T-1; t++) {
-			//__m256d bwd_vec1 = _mm256_load_pd(backward + t*M + i);
-			//__m256d fwd_vec1 = _mm256_load_pd(forward + t*M + i);
-			//__m256d inter1 = _mm256_mul_pd(bwd_vec1, fwd_vec1);
-			//sum1 = _mm256_fmadd_pd(inter1, _mm256_set1_pd(sc_factors[t]), sum1);
 			sum += (forward[t*M + i] * backward[t*M + i]) * sc_factors[t];
 		}
-		sum = 1.0/ sum;
 
-		for (int j = 0; j < M-7; j+=8) {
+		__m256d sum_vec = _mm256_set1_pd(1.0 / sum);
+
+		for (int j = 0; j < M-3; j+=4) {
 			__m256d acc1 = _mm256_setzero_pd();
 			__m256d acc2 = _mm256_setzero_pd();
 			for (int t = 0; t < T-1; t++) {
@@ -193,16 +192,9 @@ static void update_and_check(double* forward, double* backward, int M, int N, in
 				__m256d b_vec1 = _mm256_load_pd(B + observation_seq[t+1]*M + j);
 				__m256d inter1 = _mm256_mul_pd(bwd_vec1, b_vec1);
 				acc1 = _mm256_fmadd_pd(fwd_vec1, inter1, acc1);
-
-				__m256d bwd_vec2 = _mm256_load_pd(backward + (t+1)*M + j+4);
-				__m256d b_vec2 = _mm256_load_pd(B + observation_seq[t+1]*M + j+4);
-				__m256d inter2 = _mm256_mul_pd(bwd_vec2, b_vec2);
-				acc2 = _mm256_fmadd_pd(fwd_vec1, inter2, acc2);
 			}
-			acc1 = _mm256_mul_pd(acc1, _mm256_set1_pd(sum));
-			acc2 = _mm256_mul_pd(acc2, _mm256_set1_pd(sum));
+			acc1 = _mm256_mul_pd(acc1, sum_vec);
 			_mm256_store_pd(A + i*M + j, _mm256_mul_pd(acc1, _mm256_load_pd(A + i*M + j)));
-			_mm256_store_pd(A + i*M + j+4, _mm256_mul_pd(acc2, _mm256_load_pd(A + i*M + j+4)));
 		}
 	}
 
