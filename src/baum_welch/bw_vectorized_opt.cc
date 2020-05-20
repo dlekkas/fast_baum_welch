@@ -56,7 +56,7 @@ inline __m256d add_4_arrays(__m256d a, __m256d b, __m256d c, __m256d d) {
 inline void forward_backward(double* forward, double* backward, int M, int N, int T,
 		double* pi, double* A, double* B, int* observation_seq, double *sc_factors) {
 
-    double sum = 0.0, acc = 0.0;
+    double sum = 0.0;
 
     __m256d B_vect, p, sum_vector, temp, f, b, A_vect, sc_vector, acc_v;
     __m256d sum_vector1, sum_vector2, sum_vector3, sum_vector4;

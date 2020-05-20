@@ -2,11 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(baum_welch_asl)
 
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "-Wall -O3 -mavx2 -mfma")
-
+#set(CMAKE_CXX_FLAGS "-Wall -std=c++17 -Ofast -flto -funroll-loops -frename-registers -march=native -mavx2 -mfma")
+set(CMAKE_CXX_FLAGS "-Wall -std=c++17 -O3 -mavx2 -mfma")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(INCLUDE_DIR "include")

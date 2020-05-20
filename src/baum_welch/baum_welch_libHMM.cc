@@ -133,7 +133,7 @@ void BaumWelchLibHMM::operator()(){
 	// static const int maxIt = 10;
 	// static const double tol = 1e-4;
 	int i, j, it, t;
-	double z, l=0;
+	double z;
 	randomTransitionKernel(Q, N);
 	randomEmissionKernel(g, N, M);
 	double c[n];
