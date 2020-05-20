@@ -23,12 +23,17 @@ class Benchmark {
 		int bw_iterations;
 
 		std::vector<double> measurements;
+		std::vector<uint64_t> flop_measurements;
 		std::string impl_tag;
 		std::string metric_tag;
 
 		Statistics stats;
+		Statistics flop_stats;
 
 		Benchmark(const std::vector<double>& values, const std::string& i_tag,
+				const std::string& m_tag, int n, int m, int o, int bw_iters);
+
+		Benchmark(const std::vector<double>& values, const std::vector<uint64_t>& flop_values, const std::string& i_tag,
 				const std::string& m_tag, int n, int m, int o, int bw_iters);
 
 		Benchmark(const Benchmark& bench) = default;

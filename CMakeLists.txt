@@ -4,6 +4,7 @@ project(baum_welch_asl)
 
 #set(CMAKE_CXX_FLAGS "-Wall -std=c++17 -Ofast -flto -funroll-loops -frename-registers -march=native -mavx2 -mfma")
 set(CMAKE_CXX_FLAGS "-Wall -std=c++17 -O3 -mavx2 -mfma")
+# set(CMAKE_CXX_FLAGS "-Wall -O3 -std=c++17 -mavx2 -mfma -L /home/andreas/ETH/Advanced_Systems_Lab/pcm/pcm.so -lpcm")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(INCLUDE_DIR "include")

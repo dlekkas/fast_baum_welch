@@ -20,8 +20,9 @@ void run_benchmarks(const vector<InputParams> &inputs_var_M, const vector<Implem
 		std::cout << "M: " << M << ", N: " << N << ", S: " << S << std::endl;
 		// Measurements regarding all the C-like implementations
 		for (const auto [impl_tag, bw_func]: implementations) {
-			perf_test_rdtscp(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles);
-			perf_test_chrono(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_time);
+			// perf_test_rdtscp(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles);
+			perf_test_rdtscp_and_flops(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles + "_plus_flops");
+			// perf_test_chrono(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_time);
 		}
 	}
 }
@@ -31,12 +32,14 @@ int main() {
 	// entry: { <implementation-tag>, <baum-welch-function> }
 	vector<Implementation> implementations {
 		//{"C++ Baseline", new BaumWelchCppBaseline()},
-		//{"C-like Baseline", new BaumWelchCBasic()},
-		//{"C Basic Opts", new BaumWelchCBasicOpts()},
+		{"C-like Baseline", new BaumWelchCBasic()},
+		{"C Basic Opts", new BaumWelchCBasicOpts()},
 		{"C More Opts", new BaumWelchCOptsV2()},
-		{"C Manos", new BaumWelchCOptsManos()}
-		//{"C Loop Unroll", new BaumWelchCLoopUnroll()},
-		//{"C Basic Vectorized", new BaumWelchCVectBasic()}
+		{"C Blocking", new BaumWelchCOptsBlocking()},
+		{"C Loop Unroll", new BaumWelchCLoopUnroll()},
+		// {"BaumWelchCVectOpt", new BaumWelchCVectOpt()},
+		{"BaumWelchCVectUnroll", new BaumWelchCVectUnroll()},
+		{"BaumWelchCVectDim2", new BaumWelchCVectDim2()},
 	};
 
 	// entry: { <n-states>, <n-emissions>, <observation-length> }
@@ -46,8 +49,8 @@ int main() {
 		{32,  64, 256},
 		{64,  64, 256},
 		{128, 64, 256},
-		{256, 64, 256},
-		{512, 64, 256}
+		// {256, 64, 256},
+		// {512, 64, 256}
 	};
 
 	vector<InputParams> inputs_var_N {

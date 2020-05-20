@@ -24,7 +24,7 @@ typedef union
 } tsc_counter;
 
 
-#define RDTSC(cpu_c) \
+#define RDTSC2(cpu_c) \
 	  ASM VOLATILE ("rdtscp" : "=a" ((cpu_c).int32.lo), "=d"((cpu_c).int32.hi)) \
 
 #define CPUID() \
@@ -41,13 +41,13 @@ static void init_tsc() {
 static uint64_t start_tsc(void) {
     tsc_counter start;
 	CPUID();
-    RDTSC(start);
+    RDTSC2(start);
     return COUNTER_VAL(start);
 }
 
 static uint64_t stop_tsc() {
 	tsc_counter end;
-	RDTSC(end);
+	RDTSC2(end);
 	CPUID();
 	return COUNTER_VAL(end);
 }

@@ -7,15 +7,16 @@ import matplotlib.pyplot as plt
 import sys
 
 
-def compute_flops(M, N, T, iterations):
-    M_sq = pow(M,2)
-    #flops_per_it = 13*M_sq*(T-1) + M_sq*(T+1) + 10*M*T + T - M + M*N*(T+2)
-    flops_per_it = M*T*(M + N)
-    flops = flops_per_it*iterations
-    return flops
+# def compute_flops(M, N, T, iterations):
+#     M_sq = pow(M,2)
+#     #flops_per_it = 13*M_sq*(T-1) + M_sq*(T+1) + 10*M*T + T - M + M*N*(T+2)
+#     flops_per_it = M*T*(M + N)
+#     flops = flops_per_it*iterations
+#     return flops
 
 def plot(input_file):
     times = {}
+    flops = {}
     with open(input_file) as fp:
         line = fp.readline()
         tokens = line.split(",")
@@ -38,9 +39,12 @@ def plot(input_file):
             tokens = line.split(",")
             if (not(tokens[0] in times)):
                 times[tokens[0]] = {}
-            key_pair = (int(tokens[2]), int(tokens[3]), int(tokens[4]))
-            times[tokens[0]][key_pair] = float(tokens[5])
-            T = int(tokens[4])
+            if not(tokens[0] in flops):
+                flops[tokens[0]] = {}
+            key = int(tokens[key_idx])
+            times[tokens[0]][key] = float(tokens[5])
+            flops[tokens[0]][key] = float(tokens[9])
+            # T = int(tokens[4])
             iterations = int(tokens[6])
             line = fp.readline()
 
@@ -48,10 +52,13 @@ def plot(input_file):
         d = times[k]
         od = collections.OrderedDict(sorted(d.items()))
         times[k] = od
+        d = flops[k]
+        od = collections.OrderedDict(sorted(d.items()))
+        flops[k] = od
 
     num_points = len(od)
     x=range(num_points)
-    x_l = [str(i[key_idx - 2]) for i in od]
+    x_l = [str(i) for i in od]
     fig, ax = plt.subplots(figsize=(11,9))
 
     labs=[]
@@ -59,11 +66,10 @@ def plot(input_file):
     for i in times:
         print(i)
         d = times[i]
+        d_flops = flops[i]
         y = []
         for j in d:
-            m, n, T = j
-            flops = compute_flops(m, n, T, iterations)
-            y.append(flops/d[j])
+            y.append(d_flops[j]/d[j])
         print(y)
         line=plt.plot(x, y, marker='o', linestyle='-', label=i)
         lns += line
@@ -77,12 +83,18 @@ def plot(input_file):
     for tick in ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(10)
 
-    ax.set_title('Baum-Welch Performance (' + title + ')', fontsize=14)
+    processor = 'Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz'
+    compiler = 'icc 19.1'
+    flags = '-mavx2 -mfma'
+    subtitle = processor + '\n' + '\n' + compiler + ' (' + flags + ')'
+
+    ax.set_title('Baum-Welch Performance (' + title + ')' + '\n' + subtitle , fontsize=14)
     ax.set_xlabel(xlabel, fontsize=14)
-    ax.set_ylabel('Performance (flops/cycle)', fontsize=14)
+    ax.set_ylabel('Performance (flop/cycle)', fontsize=14)
+    ax.set_ylim(0, 6)
 
     labs = [l.get_label() for l in lns]
-    lgd = ax.legend(lns, labs, ncol=1, loc=2, fontsize=12)
+    lgd = ax.legend(lns, labs, ncol=3, loc=2, fontsize=12)
     fig.savefig("perf_" + xlabel + ".png")
 
 if __name__ == '__main__':

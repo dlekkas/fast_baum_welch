@@ -17,17 +17,17 @@ def plot(plot_time, input_file, save_name, show_ci=False):
         if 'var_M' in input_file:
             xlabel = 'M'
             key_idx = 2
-            title = 'N = ' + tokens[3] + ', T = ' + tokens[4]
+            var_title = 'N = ' + tokens[3] + ', T = ' + tokens[4]
         elif 'var_N' in input_file:
             xlabel = 'N'
             key_idx = 3
-            title = 'M = ' + tokens[2] + ', T = ' + tokens[4]
+            var_title = 'M = ' + tokens[2] + ', T = ' + tokens[4]
         elif 'var_T' in input_file:
             xlabel = 'T'
             key_idx = 4
-            title = 'M = ' + tokens[2] + ', N = ' + tokens[3]
+            var_title = 'M = ' + tokens[2] + ', N = ' + tokens[3]
         else:
-            print ('Error: Expected file whose name contains \'var_M\' or \'var_N\' or \'var_T\'')
+            print('Error: Expected file whose name contains \'var_M\' or \'var_N\' or \'var_T\'')
             exit()
         while line:
             tokens = line.split(",")
@@ -90,15 +90,21 @@ def plot(plot_time, input_file, save_name, show_ci=False):
     for tick in ax.yaxis.get_major_ticks():
             tick.label.set_fontsize(10)
 
+    processor = 'Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz'
+    compiler = 'icc 19.1'
+    flags = '-mavx2 -mfma'
+    subtitle = processor + '\n' + compiler + ' (' + flags + ')'
+
     if (plot_time):
-        ax.set_title('Time benchmark (' + title + ')', fontsize=14)
-        ax.set_xlabel(xlabel, fontsize=14)
+        title = 'Time benchmark (' + var_title + ')'
         ax.set_ylabel('Time (msec)', fontsize=14)
 
     else:
-        ax.set_title('Cycles benchmark (' + title + ')', fontsize=14)
-        ax.set_xlabel(xlabel, fontsize=14)
+        title = 'Cycles benchmark (' + var_title + ')'
         ax.set_ylabel('Number of Cycles', fontsize=14)
+
+    ax.set_title(title + '\n' + '\n' + subtitle, fontsize=14)
+    ax.set_xlabel(xlabel, fontsize=14)
 
     if show_ci:
         ln = []

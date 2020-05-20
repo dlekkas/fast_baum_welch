@@ -13,6 +13,7 @@ using namespace std;
 Statistics Benchmark::CalculateStatistics() {
 	int n = measurements.size();
 	std::sort(measurements.begin(), measurements.end());
+	std::sort(flop_measurements.begin(), flop_measurements.end());
 
 	stats.median = (n % 2 != 0) ? measurements[n/2] :
 		(measurements[n/2] + measurements[n/2+1]) / 2;
@@ -37,6 +38,12 @@ Statistics Benchmark::CalculateStatistics() {
 
 	stats.confidence_interval_low  = measurements[ci_low_rank];
 	stats.confidence_interval_high = measurements[ci_high_rank];
+
+	int n_flops = flop_measurements.size();
+	if (n_flops != 0) {
+		flop_stats.median = (n_flops % 2 != 0) ? (double)flop_measurements[n_flops/2] :
+								((double)(flop_measurements[n_flops/2] + flop_measurements[n_flops/2+1])) / 2;
+	}
 
 #ifdef DEBUG_CI
 	cout << "measurements:" << endl;
@@ -71,7 +78,12 @@ void Benchmark::CSVPrint(const string& file) {
 	ofstream ofs(file, ios_base::app);
 	ofs << impl_tag << "," << metric_tag << "," << M << ","
 		<< N << "," << O << "," << stats.median << "," << bw_iterations << "," << stats.confidence_interval_low << ","
-		<< stats.confidence_interval_high << endl;
+		<< stats.confidence_interval_high;
+
+	if (flop_stats.median > 1) {
+		ofs << "," << flop_stats.median;
+	}
+	ofs << endl;
 }
 
 void Benchmark::CompactPrint(ostream& os) {
@@ -84,6 +96,18 @@ Benchmark::Benchmark(const vector<double>& values, const string& i_tag,
 	N(n), M(m), O(o),
 	bw_iterations(bw_iters),
 	measurements(values),
+	impl_tag(i_tag),
+	metric_tag(m_tag)
+{
+	CalculateStatistics();
+}
+
+Benchmark::Benchmark(const vector<double>& values, const std::vector<uint64_t>& flop_values, const string& i_tag,
+		const string& m_tag, int n, int m, int o, int bw_iters):
+	N(n), M(m), O(o),
+	bw_iterations(bw_iters),
+	measurements(values),
+	flop_measurements(flop_values),
 	impl_tag(i_tag),
 	metric_tag(m_tag)
 {

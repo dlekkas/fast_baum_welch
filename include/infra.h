@@ -8,6 +8,9 @@
 void perf_test_rdtscp(const std::string& tag, BaumWelch* impl, int M, int N, int S, int n_runs,
 		int n_iter, std::ostream& xout, bool to_CSV = false, std::string out_file = "");
 
+void perf_test_rdtscp_and_flops(const std::string& impl_tag, BaumWelch* impl, int M, int N, int S,
+		int n_runs, int n_iter, std::ostream& xout, bool to_CSV, std::string out_file = "");
+
 void perf_test_chrono(const std::string& tag, BaumWelch* impl, int M, int N, int S, int n_runs,
 		int n_iter, std::ostream& xout, bool to_CSV = false, std::string out_file = "");
 
