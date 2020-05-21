@@ -4,7 +4,7 @@
 */
 
 /*
-* INLINED FUNCTIONS (DID NOT IMPROVE) + ELIMINATED GAMMA AND CHSI (LESS MEMORY - MORE COMPUTATIONS)
+* BW OPTS (MANOS) + BLOCKING ON A MATRIX + BLOCKING ON B MATRIX (DOES NOT IMPROVE)
 */
 #include <iostream>
 #include <assert.h>
@@ -13,7 +13,7 @@
 using namespace std;
 
 // -----> TOTAL (T-1)M(3M+2) + 2M muls, (T-1)(M+1) + 1 divs, (T-1)M(2*M + 1) + M adds (SAME COUNT AS BASIC_OPTS)
-inline void forward_backward(double** forward, double** backward, int M, int N, int T,
+static void forward_backward(double** forward, double** backward, int M, int N, int T,
 		double* pi, double** A, double** B, int* observation_seq, double *sc_factors) {
 
     double sum = 0.0, acc = 0.0;
@@ -65,37 +65,30 @@ inline void forward_backward(double** forward, double** backward, int M, int N, 
     }
 }
 
+//WATCH OUT INLINING
 // -----> TOTAL (M*((N+2)*T + M*(2T+1)) muls, M*(N*(T+1) + M + 2T) divs, M*(T*(N+1) + (T-1)*(M+1)) adds)
-inline void update_and_check(double** forward, double** backward, int M, int N, int T,
-		double* pi, double** A, double** B, int* observation_seq, double *sc_factors, const vector<vector<int>>& obs_dict) {
+static void update_and_check(double** forward, double** backward, int M, int N, int T,
+		double* pi, double** A, double** B, int* observation_seq, double *sc_factors, const vector<vector<int>>& obs_dict) { //double** sum, int blocking_size, int blocking_size_2) {
 
-  double sum[4][4];  // CHANGE PARAMETER
-  int blocking_size = 4; // CHANGE PARAMETER
+    double sum[4][4];  // CHANGE PARAMETER
+    int blocking_size = 4; // CHANGE PARAMETER
 
-  for (int t = 0; t < T; t++) {
-		sc_factors[t] = 1.0 / sc_factors[t];
-	}
+    int blocking_size_2 = 4; // CHANGE PARAMETER
 
-	// pi computation
-	for (int i = 0; i < M; i++) {
-		pi[i] = forward[0][i] * backward[0][i] * sc_factors[0];
-	}
+    for (int t = 0; t < T; t++) {
+		  sc_factors[t] = 1.0 / sc_factors[t];
+	  }
 
-	// -> ops = 3*T*M^2 , mem = 4*T*M^2   (M*(M*(2T-1) + T) muls,  M*(M+T) divs, (T-1)*M*(M+1) adds)
-	/*for (int i = 0; i < M; i++) {
-		for (int j = 0; j < M; j ++) {
-			double sum = 0.0;
-			for (int t = 0; t < T-1; t ++) {
-          sum += (backward[t+1][j] * B[observation_seq[t+1]][j]) * forward[t][i];
-      }
-			A[i][j] *= sum; // common factor
-		}
-  }*/
+	 // pi computation
+	  for (int i = 0; i < M; i++) {
+		  pi[i] = forward[0][i] * backward[0][i] * sc_factors[0];
+	  }
 
     // Compute A
     for (int i = 0; i < M; i += blocking_size) {
   		for (int j = 0; j < M; j += blocking_size) {
         // zero the sum_block
+
         for (int k = 0; k < blocking_size; k++) {
           for (int l = 0; l < blocking_size; l++) {
             sum[k][l] = 0.0;
@@ -103,10 +96,10 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
         }
         // iterate until last block since T-1 position is not included in computation
         int t = 0;
-  			for (; t < T - blocking_size - 1; t += blocking_size) {
+  	    for (; t < T - blocking_size - 1; t += blocking_size) {  // CHECK FOR SCALAR REPLACEMENT AND UNROLLING AT FINAL VERSION
           // computation of block on sum matrix
           for (int i_ = i; i_ < i + blocking_size; i_++) {
-            int k = i_%blocking_size;
+            int k = i_%blocking_size;   // strength reduction
             for (int j_ = j; j_ < j + blocking_size; j_++) {
               int l = j_%blocking_size;
               for (int t_ = t; t_ < t + blocking_size; t_++) {
@@ -116,7 +109,6 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
           }
         }
         // final block
-        //for (; t < T - 1; t += blocking_size) {
         for (int i_ = i; i_ < i + blocking_size; i_++) {
           int k = i_%blocking_size;
           for (int j_ = j; j_ < j + blocking_size; j_++) {
@@ -126,7 +118,6 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
             }
           }
         }
-        //}
         // Write back to A matrix - common factor
         for (int i_ = i; i_ < i + blocking_size; i_++) {
           for (int j_ = j; j_ < j + blocking_size; j_++) {
@@ -136,36 +127,40 @@ inline void update_and_check(double** forward, double** backward, int M, int N, 
   		}
     }
 
-    // Divide by sum of gammas, HAVEN'T TESTED FOR BLOCKING VERSION
+    // Divide by sum of gammas
     for (int i = 0; i < M; i++) {
       double acc = 0.0;
       for (int t = 0; t < T-1; t++) {
         acc += (forward[t][i] * backward[t][i]) * sc_factors[t];
       }
+      acc = 1.0 / acc;
       for (int j = 0; j < M; j++) {
-        A[i][j] = A[i][j] / acc; // common factor
+        A[i][j] = A[i][j] * acc; // common factor
       }
     }
 
-    // Compute B
-    // -> ops = 3*T*M*N, mem = 3*T*M^2   (T*M*(N+1) muls, M*(N*(T+1) + T) divs, T*M*(N+1) adds)
-    for (int i = 0; i < M; i++) {
-      for (int j = 0; j < N; j++) {
-          double occurrences = 0.0;
-          for (const auto& t: obs_dict[j]) {
-              occurrences += (forward[t][i] * backward[t][i]) * sc_factors[t];
-  				}
-  				B[j][i] = occurrences;
+    for (int i = 0; i < M; i += blocking_size_2) {
+      for (int j = 0; j < N; j += blocking_size_2) {
+        for (int i_ = i; i_ < i + blocking_size_2; i_++) {
+          for (int j_ = j; j_ < j + blocking_size_2; j_++) {
+            double occurrences = 0.0;
+            for (const auto& t: obs_dict[j_]) {
+                occurrences += (forward[t][i_] * backward[t][i_]) * sc_factors[t];
+      			}
+            B[j_][i_] = occurrences;
+          }
+        }
       }
     }
 
     for (int i = 0; i < M; i++) {
-      double sum_2 = 0.0;
+      double acc_2 = 0.0;
       for (int t = 0; t < T; t++) {
-        sum_2 += (forward[t][i] * backward[t][i]) * sc_factors[t];
+        acc_2 += (forward[t][i] * backward[t][i]) * sc_factors[t];
   		}
+      acc_2 = 1.0 / acc_2;
       for (int j = 0; j < N; j++) {
-        B[j][i] = B[j][i]/sum_2;
+        B[j][i] = B[j][i] * acc_2;
       }
     }
 }
@@ -184,6 +179,7 @@ void BaumWelchCOptsBlocking::operator()() {
 	}
 
   double *sc_factors = (double *)malloc(T * sizeof(double));
+
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
         forward_backward(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors);

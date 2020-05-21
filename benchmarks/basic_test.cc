@@ -8,7 +8,7 @@
 #define N_ITERATIONS 20
 #define N_RUNS 1
 
-#define SEQ_LEN 128
+#define SEQ_LEN 256
 #define M 128
 #define N 128
 
@@ -28,10 +28,11 @@ int main() {
 		{"C Manos", new BaumWelchCOptsManos()},
 		{"C Blocking", new BaumWelchCOptsBlocking()},
 		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
-		{"C vectorized opt", new BaumWelchCVectOpt()},
-		{"C vectorized with unroll", new BaumWelchCVectUnroll()},
-		{"C vectorized v3", new BaumWelchCVectDim2()},
-		{"C vectorized with unroll", new BaumWelchCVectUnroll()},
+		{"C loop unrolling + Blocking", new BaumWelchCBlocking_Unroll()},
+		//{"C vectorized opt", new BaumWelchCVectOpt()},
+		//{"C vectorized with unroll", new BaumWelchCVectUnroll()},
+		//{"C vectorized v3", new BaumWelchCVectDim2()},
+		//{"C vectorized with unroll", new BaumWelchCVectUnroll()},
 	};
 
 	for (auto [impl_tag, bw_func]: implementations) {
