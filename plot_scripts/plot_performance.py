@@ -88,9 +88,10 @@ def plot(input_file):
     flags = '-mavx2 -mfma'
     subtitle = processor + '\n' + '\n' + compiler + ' (' + flags + ')'
 
-    ax.set_title('Baum-Welch Performance (' + title + ')' + '\n' + subtitle , fontsize=14)
+    ax.set_title('Baum-Welch Performance (' + title + ')' + '\n' + subtitle, fontsize=14)
     ax.set_xlabel(xlabel, fontsize=14)
-    ax.set_ylabel('Performance (flop/cycle)', fontsize=14)
+    plt.ylabel('Performance [flop/cycle]', rotation=0, fontsize=14)
+    ax.yaxis.set_label_coords(0.06,1.02)
     ax.set_ylim(0, 6)
 
     labs = [l.get_label() for l in lns]

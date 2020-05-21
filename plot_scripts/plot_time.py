@@ -101,7 +101,9 @@ def plot(plot_time, input_file, save_name, show_ci=False):
 
     else:
         title = 'Cycles benchmark (' + var_title + ')'
-        ax.set_ylabel('Number of Cycles', fontsize=14)
+        # ax.set_ylabel('Number of Cycles', fontsize=14)
+        plt.ylabel('cycles', rotation=0, fontsize=14)
+        ax.yaxis.set_label_coords(0.03,1.03)
 
     ax.set_title(title + '\n' + '\n' + subtitle, fontsize=14)
     ax.set_xlabel(xlabel, fontsize=14)
