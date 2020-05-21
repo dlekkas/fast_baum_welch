@@ -21,7 +21,9 @@ void run_benchmarks(const vector<InputParams> &inputs_var_M, const vector<Implem
 		// Measurements regarding all the C-like implementations
 		for (const auto [impl_tag, bw_func]: implementations) {
 			// perf_test_rdtscp(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles);
-			//perf_test_rdtscp_and_flops(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles + "_plus_flops");
+#ifdef MEASURE_FLOPS
+			perf_test_rdtscp_and_flops(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_cycles + "_plus_flops");
+#endif
 			// perf_test_chrono(impl_tag, bw_func, M, N, S, N_RUNS, N_ITER, std::cout, true, results_file_time);
 		}
 	}
