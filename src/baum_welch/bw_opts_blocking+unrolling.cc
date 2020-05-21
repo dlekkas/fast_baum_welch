@@ -159,7 +159,7 @@ static void update_and_check(double** forward, double** backward, int M, int N, 
 
       }
       // final block
-      for (int i_ = i; i_ < i + blocking_size; i_++) {
+    /*  for (int i_ = i; i_ < i + blocking_size; i_++) {
         int k = i_%blocking_size;
         for (int j_ = j; j_ < j + blocking_size; j_++) {
           int l = j_%blocking_size;
@@ -167,7 +167,35 @@ static void update_and_check(double** forward, double** backward, int M, int N, 
             sum[k][l] += (backward[t_+1][j_] * B[observation_seq[t_+1]][j_]) * forward[t_][i_];
           }
         }
+      } */
+
+			// final block
+      for (int i_ = i; i_ < i + blocking_size; i_ += 4) {
+        int k = i_%blocking_size;
+        for (int j_ = j; j_ < j + blocking_size; j_ += 2) {
+          int l = j_%blocking_size;
+					double sum1 = 0.0, sum2 = 0.0, sum5 = 0.0, sum6 = 0.0;
+					double sum3 = 0.0, sum4 = 0.0, sum7 = 0.0, sum8 = 0.0;
+          for (int t_ = t; t_ < t + blocking_size - 1; t_++) {
+						double c1 = backward[t_+1][j_]   * B[observation_seq[t_+1]][j_];
+						double c2 = backward[t_+1][j_+1] * B[observation_seq[t_+1]][j_+1];
+
+			/*      double c3 = backward[t_+1][j_+2]   * B[observation_seq[t_+1]][j_+2];
+						double c4 = backward[t_+1][j_+3] * B[observation_seq[t_+1]][j_+3];*/
+
+						sum1 += c1 * forward[t_][i_];   sum5 += c2 * forward[t_][i_];
+						sum2 += c1 * forward[t_][i_+1]; sum6 += c2 * forward[t_][i_+1];
+						sum3 += c1 * forward[t_][i_+2]; sum7 += c2 * forward[t_][i_+2];
+						sum4 += c1 * forward[t_][i_+3]; sum8 += c2 * forward[t_][i_+3];
+          }
+					sum[k][l]   += sum1;  sum[k][l+1]   += sum5;
+					sum[k+1][l] += sum2;  sum[k+1][l+1] += sum6;
+					sum[k+2][l] += sum3;  sum[k+2][l+1] += sum7;
+					sum[k+3][l] += sum4;  sum[k+3][l+1] += sum8;
+        }
       }
+
+
       // Write back to A matrix - common factor
       for (int i_ = i; i_ < i + blocking_size; i_++) {
         for (int j_ = j; j_ < j + blocking_size; j_++) {
