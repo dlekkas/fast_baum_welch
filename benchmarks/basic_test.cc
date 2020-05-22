@@ -25,13 +25,13 @@ int main() {
 		//{"C basic", new BaumWelchCBasic()},
 		//{"C basic opts", new BaumWelchCBasicOpts()},
 		//{"C more opts", new BaumWelchCOptsV2()},
-		{"C Manos", new BaumWelchCOptsManos()},
-		{"C Blocking", new BaumWelchCOptsBlocking()},
+		//{"C Manos", new BaumWelchCOptsManos()},
+		//{"C Blocking", new BaumWelchCOptsBlocking()},
 		{"C loop unrolling opt", new BaumWelchCLoopUnroll()},
 		{"C loop unrolling + Blocking", new BaumWelchCBlocking_Unroll()},
 		//{"C vectorized opt", new BaumWelchCVectOpt()},
-		//{"C vectorized with unroll", new BaumWelchCVectUnroll()},
-		//{"C vectorized v3", new BaumWelchCVectDim2()},
+		{"C vectorized v3", new BaumWelchCVectDim2()},
+		{"C vectorized+blocking", new BaumWelchCVectBlocking()},
 		//{"C vectorized with unroll", new BaumWelchCVectUnroll()},
 	};
 

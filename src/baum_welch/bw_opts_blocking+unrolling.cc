@@ -113,7 +113,7 @@ static void update_and_check(double** forward, double** backward, int M, int N, 
       }
       // iterate until last block since T-1 position is not included in computation
       int t = 0;
-      for (; t < T - blocking_size - 1; t += blocking_size) {  // CHECK FOR SCALAR REPLACEMENT AND UNROLLING AT FINAL VERSION
+      for (; t < T - blocking_size - 1; t += blocking_size) {
 
 
         // computation of block on sum matrix
@@ -124,25 +124,25 @@ static void update_and_check(double** forward, double** backward, int M, int N, 
             double sum1 = 0.0, sum2 = 0.0, sum5 = 0.0, sum6 = 0.0;
             double sum3 = 0.0, sum4 = 0.0, sum7 = 0.0, sum8 = 0.0;
 
-      /*      double sum9 = 0.0, sum10 = 0.0, sum11 = 0.0, sum12 = 0.0;
-      			double sum13 = 0.0, sum14 = 0.0, sum15 = 0.0, sum16 = 0.0; */
+            //double sum9 = 0.0, sum10 = 0.0, sum11 = 0.0, sum12 = 0.0;
+      			//double sum13 = 0.0, sum14 = 0.0, sum15 = 0.0, sum16 = 0.0;
 
             for (int t_ = t; t_ < t + blocking_size; t_++) {
               double c1 = backward[t_+1][j_]   * B[observation_seq[t_+1]][j_];
       				double c2 = backward[t_+1][j_+1] * B[observation_seq[t_+1]][j_+1];
 
-        /*      double c3 = backward[t_+1][j_+2]   * B[observation_seq[t_+1]][j_+2];
-      				double c4 = backward[t_+1][j_+3] * B[observation_seq[t_+1]][j_+3];*/
+             	//double c3 = backward[t_+1][j_+2]   * B[observation_seq[t_+1]][j_+2];
+      				//double c4 = backward[t_+1][j_+3] * B[observation_seq[t_+1]][j_+3];
 
       				sum1 += c1 * forward[t_][i_];   sum5 += c2 * forward[t_][i_];
       				sum2 += c1 * forward[t_][i_+1]; sum6 += c2 * forward[t_][i_+1];
               sum3 += c1 * forward[t_][i_+2]; sum7 += c2 * forward[t_][i_+2];
       				sum4 += c1 * forward[t_][i_+3]; sum8 += c2 * forward[t_][i_+3];
 
-      /*        sum9 += c3 * forward[t_][i_];   sum13 += c4 * forward[t_][i_];
-      				sum10 += c3 * forward[t_][i_+1]; sum14 += c4 * forward[t_][i_+1];
-      				sum11 += c3 * forward[t_][i_+2]; sum15 += c4 * forward[t_][i_+2];
-      				sum12 += c3 * forward[t_][i_+3]; sum16 += c4 * forward[t_][i_+3];*/
+              //sum9 += c3 * forward[t_][i_];   sum13 += c4 * forward[t_][i_];
+      				//sum10 += c3 * forward[t_][i_+1]; sum14 += c4 * forward[t_][i_+1];
+      				//sum11 += c3 * forward[t_][i_+2]; sum15 += c4 * forward[t_][i_+2];
+      				//sum12 += c3 * forward[t_][i_+3]; sum16 += c4 * forward[t_][i_+3];
             }
             sum[k][l]   += sum1;  sum[k][l+1]   += sum5;
       			sum[k+1][l] += sum2;  sum[k+1][l+1] += sum6;
@@ -206,7 +206,7 @@ static void update_and_check(double** forward, double** backward, int M, int N, 
   }
 
   // Divide by sum of gammas
-  for (int i = 0; i < M; i++) {
+  for (int i = 0; i < M; i ++) {
     double acc = 0.0;
     for (int t = 0; t < T-1; t++) {
       acc += (forward[t][i] * backward[t][i]) * sc_factors[t];
@@ -216,6 +216,25 @@ static void update_and_check(double** forward, double** backward, int M, int N, 
       A[i][j] = A[i][j] * acc; // common factor
     }
   }
+
+	/*for (int i = 0; i < M; i += 4) {
+    double acc1 = 0.0, acc2 = 0.0, acc3 = 0.0, acc4 = 0.0;
+    for (int t = 0; t < T-1; t++) {
+			acc1 += (forward[t][i] * backward[t][i]) * sc_factors[t];
+			acc2 += (forward[t][i+1] * backward[t][i+1]) * sc_factors[t];
+			acc3 += (forward[t][i+2] * backward[t][i+2]) * sc_factors[t];
+			acc4 += (forward[t][i+3] * backward[t][i+3]) * sc_factors[t];
+    }
+    acc1 = 1.0 / acc1; acc2 = 1.0 / acc2; acc3 = 1.0 / acc3; acc4 = 1.0 / acc4;
+    for (int j = 0; j < M; j += 2) {
+      A[i][j] = A[i][j] * acc1;   A[i][j+1] = A[i][j+1] * acc1; // common factor
+			A[i+1][j] = A[i+1][j] * acc2;   A[i+1][j+1] = A[i+1][j+1] * acc2;
+			A[i+2][j] = A[i+2][j] * acc3;   A[i+2][j+1] = A[i+2][j+1] * acc3;
+			A[i+3][j] = A[i+3][j] * acc4;   A[i+3][j+1] = A[i+3][j+1] * acc4;
+
+    }
+  } */
+
 
 	// ops <= 4*T*M*N, mem <= 3*T*M^2
   for (int k = 0; k < M; k++) {

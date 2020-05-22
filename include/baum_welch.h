@@ -140,6 +140,11 @@ class BaumWelchCVectUnroll: public BaumWelchCVect {
 		void operator()();
 };
 
+class BaumWelchCVectBlocking: public BaumWelchCVect {
+	public:
+		void operator()();
+};
+
 
 class BaumWelchCExtended: public BaumWelchC {
 
