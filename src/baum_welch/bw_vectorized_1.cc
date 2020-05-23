@@ -104,9 +104,9 @@ inline void forward_backward(double* forward, double* backward, int M, int N, in
 
 
 inline void update_and_check(double* forward, double* backward, int M, int N, int T,
-		double* pi, double* A, double* B, int* observation_seq, double *sc_factors) {
+		double* pi, double* A, double* B, int* observation_seq, double *sc_factors, vector<vector<int>>& obs_dict) {
 
-    __m256d B_vect, sum_vector, temp, f, b, acc_v, sc_vector, occurences;
+    __m256d B_vect, sum_vector, temp, f, b, acc_v, sc_vector, occurences, acc1;
 
     double temp_array[4];
 
@@ -155,9 +155,6 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
 		}
 
     }
-
-
-	// ops = 3*T*M*N, mem = 3*T*M^2
     for (int i = 0; i < M; i+=4) {
 
         sum_vector = _mm256_set1_pd(0.0);
@@ -169,27 +166,21 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
             temp = _mm256_mul_pd(f, b);
             temp = _mm256_mul_pd(temp, sc_vector);
             sum_vector = _mm256_add_pd(temp, sum_vector);
-            //sum += (forward[t][i] / sc_factors[t]) * backward[t][i];
 		}
 
-        for (int vk = 0; vk < N; vk++) {
 
-            occurences = _mm256_set1_pd(0.0);
+        for (int j=0; j < N; j++) {
+            acc1 = _mm256_set1_pd(0.0);
+			for (const auto& t: obs_dict[j]) {
+                sc_vector = _mm256_set1_pd(1.0/sc_factors[t]);
+				f = _mm256_load_pd(forward + t*M + i);
+                b = _mm256_load_pd(backward + t*M + i);
+                temp = _mm256_mul_pd(f, b);
+                acc1 = _mm256_fmadd_pd(temp, sc_vector, acc1);
+			}
 
-
-            for (int t = 0; t < T; t++) {
-                if (observation_seq[t] == vk) {
-
-                    sc_vector = _mm256_set1_pd(1.0/sc_factors[t]);
-                    f = _mm256_load_pd(forward + t*M + i);
-                    b = _mm256_load_pd(backward + t*M + i);
-                    temp = _mm256_mul_pd(f, b);
-                    temp = _mm256_mul_pd(temp, sc_vector);
-                    occurences = _mm256_add_pd(temp, occurences);
-				}
-            }
-            temp = _mm256_div_pd(occurences, sum_vector);
-            _mm256_store_pd(B + vk*M + i, temp);
+			temp = _mm256_div_pd(acc1, sum_vector);
+            _mm256_store_pd(B + j*M + i, temp);
 
         }
     }
@@ -200,11 +191,16 @@ inline void update_and_check(double* forward, double* backward, int M, int N, in
 
 void BaumWelchCVectBasic::operator()() {
 
+    vector<vector<int>> obs_dict(N);
+	for (int t = 0; t < T; t++) {
+		obs_dict[obs[t]].push_back(t);
+	}
+
     double *sc_factors = (double *)aligned_alloc(32, T * sizeof(double));
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
         forward_backward(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors);
-        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors);
+        update_and_check(fwd, bwd, M, N, T, pi, A, B, obs, sc_factors, obs_dict);
     }
 
 	#ifdef DEBUG
